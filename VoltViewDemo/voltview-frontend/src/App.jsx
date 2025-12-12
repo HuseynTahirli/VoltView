@@ -22,7 +22,6 @@ ChartJS.register(
   Legend
 );
 
-// ===================== LOGIN COMPONENT =====================
 
 function Login({ onLoginSuccess }) {
   const [username, setUsername] = useState("demo");
