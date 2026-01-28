@@ -12,38 +12,52 @@ app.use(express.json());
 
 // ================== ESP32 DATA INGESTION ==================
 app.post("/api/esp32", (req, res) => {
-  const { current } = req.body;
+  const { voltage, current, power, energy, frequency, pf } = req.body;
 
-  if (current === undefined) {
-    return res.status(400).json({ ok: false, message: "Missing current value" });
+  // Validate required fields
+  if (voltage === undefined || current === undefined || power === undefined) {
+    return res.status(400).json({
+      ok: false,
+      message: "Missing required fields: voltage, current, power"
+    });
   }
 
-  // Generate voltage & power server-side
-  const voltage = (Math.random() * (125 - 115) + 115).toFixed(2);
-  const power = ((voltage * current) / 1000).toFixed(2);
   const timestamp = new Date().toISOString();
 
-  // Insert into SQLite DB
+  // Insert all PZEM data into SQLite DB
   db.run(
-    `INSERT INTO readings (voltage, current, power, timestamp) VALUES (?, ?, ?, ?)`,
-    [voltage, current, power, timestamp],
+    `INSERT INTO readings (voltage, current, power, energy, frequency, pf, timestamp) 
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [voltage, current, power, energy || null, frequency || null, pf || null, timestamp],
     function (err) {
       if (err) {
         console.error("DB Insert Error:", err);
         return res.status(500).json({ ok: false, message: "Database error" });
       }
 
-      console.log("📥 ESP32 Reading Saved:", {
+      console.log("📥 PZEM Reading Saved:", {
         id: this.lastID,
         voltage,
         current,
         power,
+        energy,
+        frequency,
+        pf,
         timestamp,
       });
 
       res.json({
         ok: true,
-        saved: { id: this.lastID, voltage, current, power, timestamp },
+        saved: {
+          id: this.lastID,
+          voltage,
+          current,
+          power,
+          energy,
+          frequency,
+          pf,
+          timestamp
+        },
       });
     }
   );

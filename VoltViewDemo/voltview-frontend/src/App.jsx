@@ -277,8 +277,7 @@ function Dashboard({ username }) {
               fontSize: "0.9rem",
             }}
           >
-            Logged in as <strong>{username}</strong> • Real-time readings
-            (simulated smart meter)
+            Logged in as <strong>{username}</strong> • Real-time PZEM-004T readings
           </p>
         </div>
         <button
@@ -310,55 +309,116 @@ function Dashboard({ username }) {
       >
         {/* LEFT PANEL: stats + table */}
         <div>
-          {/* Live stats card */}
+          {/* Live stats cards - 6 metrics grid */}
           {latest ? (
-            <div
-              style={{
-                border: "1px solid #1f2937",
-                borderRadius: "16px",
-                background:
-                  "radial-gradient(circle at top left, #1e293b, #020617)",
-                padding: "20px 20px 18px",
-                marginBottom: "20px",
-              }}
-            >
+            <>
               <div
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: "24px",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, 1fr)",
+                  gap: "16px",
+                  marginBottom: "20px",
                 }}
               >
-                <div>
-                  <h3
-                    style={{
-                      color: "#e5e7eb",
-                      margin: 0,
-                      marginBottom: "4px",
-                      fontSize: "0.95rem",
-                    }}
-                  >
-                    Power
+                {/* Voltage Card */}
+                <div
+                  style={{
+                    border: "1px solid #1f2937",
+                    borderRadius: "12px",
+                    background: "radial-gradient(circle at top left, #1e293b, #020617)",
+                    padding: "16px",
+                  }}
+                >
+                  <h3 style={{ color: "#94a3b8", margin: 0, fontSize: "0.85rem" }}>
+                    ⚡ Voltage
                   </h3>
-                  <p
-                    style={{
-                      fontSize: "2.2rem",
-                      fontWeight: "bold",
-                      margin: 0,
-                    }}
-                  >
-                    {latest.power} kW
+                  <p style={{ fontSize: "1.8rem", fontWeight: "bold", margin: "8px 0 0", color: "#fbbf24" }}>
+                    {latest.voltage} V
                   </p>
                 </div>
-                <div style={{ textAlign: "right", fontSize: "0.9rem" }}>
-                  <p style={{ margin: 0 }}>
-                    <span style={{ color: "#9ca3af" }}>Voltage: </span>
-                    <strong>{latest.voltage} V</strong>
+
+                {/* Current Card */}
+                <div
+                  style={{
+                    border: "1px solid #1f2937",
+                    borderRadius: "12px",
+                    background: "radial-gradient(circle at top left, #1e293b, #020617)",
+                    padding: "16px",
+                  }}
+                >
+                  <h3 style={{ color: "#94a3b8", margin: 0, fontSize: "0.85rem" }}>
+                    🔌 Current
+                  </h3>
+                  <p style={{ fontSize: "1.8rem", fontWeight: "bold", margin: "8px 0 0", color: "#60a5fa" }}>
+                    {latest.current} A
                   </p>
-                  <p style={{ margin: "4px 0 0" }}>
-                    <span style={{ color: "#9ca3af" }}>Current: </span>
-                    <strong>{latest.current} A</strong>
+                </div>
+
+                {/* Power Card */}
+                <div
+                  style={{
+                    border: "1px solid #1f2937",
+                    borderRadius: "12px",
+                    background: "radial-gradient(circle at top left, #1e293b, #020617)",
+                    padding: "16px",
+                  }}
+                >
+                  <h3 style={{ color: "#94a3b8", margin: 0, fontSize: "0.85rem" }}>
+                    💡 Power
+                  </h3>
+                  <p style={{ fontSize: "1.8rem", fontWeight: "bold", margin: "8px 0 0", color: "#22c55e" }}>
+                    {latest.power} W
+                  </p>
+                </div>
+
+                {/* Energy Card */}
+                <div
+                  style={{
+                    border: "1px solid #1f2937",
+                    borderRadius: "12px",
+                    background: "radial-gradient(circle at top left, #1e293b, #020617)",
+                    padding: "16px",
+                  }}
+                >
+                  <h3 style={{ color: "#94a3b8", margin: 0, fontSize: "0.85rem" }}>
+                    📊 Energy
+                  </h3>
+                  <p style={{ fontSize: "1.8rem", fontWeight: "bold", margin: "8px 0 0", color: "#a78bfa" }}>
+                    {latest.energy ? latest.energy.toFixed(3) : "0.000"} kWh
+                  </p>
+                </div>
+
+                {/* Frequency Card */}
+                <div
+                  style={{
+                    border: "1px solid #1f2937",
+                    borderRadius: "12px",
+                    background: "radial-gradient(circle at top left, #1e293b, #020617)",
+                    padding: "16px",
+                  }}
+                >
+                  <h3 style={{ color: "#94a3b8", margin: 0, fontSize: "0.85rem" }}>
+                    🌊 Frequency
+                  </h3>
+                  <p style={{ fontSize: "1.8rem", fontWeight: "bold", margin: "8px 0 0", color: "#f472b6" }}>
+                    {latest.frequency ? latest.frequency.toFixed(1) : "--"} Hz
+                  </p>
+                </div>
+
+                {/* Power Factor Card */}
+                <div
+                  style={{
+                    border: "1px solid #1f2937",
+                    borderRadius: "12px",
+                    background: "radial-gradient(circle at top left, #1e293b, #020617)",
+                    padding: "16px",
+                  }}
+                >
+                  <h3 style={{ color: "#94a3b8", margin: 0, fontSize: "0.85rem" }}>
+                    📈 Power Factor
+                  </h3>
+                  <p style={{ fontSize: "1.8rem", fontWeight: "bold", margin: "8px 0 0", color: "#fb923c" }}>
+                    {latest.pf ? latest.pf.toFixed(2) : "--"}
                   </p>
                 </div>
               </div>
@@ -366,20 +426,21 @@ function Dashboard({ username }) {
               <button
                 onClick={() => setIsLive((prev) => !prev)}
                 style={{
-                  marginTop: "18px",
+                  width: "100%",
+                  marginBottom: "20px",
                   backgroundColor: isLive ? "#22c55e" : "#0ea5e9",
                   color: "#020617",
                   border: "none",
-                  borderRadius: "999px",
-                  padding: "7px 14px",
+                  borderRadius: "10px",
+                  padding: "10px 14px",
                   fontWeight: 600,
                   cursor: "pointer",
-                  fontSize: "0.85rem",
+                  fontSize: "0.9rem",
                 }}
               >
-                {isLive ? "Pause Live Data" : "Resume Live Data"}
+                {isLive ? "⏸ Pause Live Data" : "▶ Resume Live Data"}
               </button>
-            </div>
+            </>
           ) : (
             <p>Waiting for data...</p>
           )}
@@ -416,6 +477,8 @@ function Dashboard({ username }) {
                   <th style={{ padding: "8px", textAlign: "left" }}>Voltage</th>
                   <th style={{ padding: "8px", textAlign: "left" }}>Current</th>
                   <th style={{ padding: "8px", textAlign: "left" }}>Power</th>
+                  <th style={{ padding: "8px", textAlign: "left" }}>Energy</th>
+                  <th style={{ padding: "8px", textAlign: "left" }}>PF</th>
                 </tr>
               </thead>
               <tbody>
@@ -435,6 +498,12 @@ function Dashboard({ username }) {
                       </td>
                       <td style={{ padding: "6px 8px", color: "#e5e7eb" }}>
                         {r.power}
+                      </td>
+                      <td style={{ padding: "6px 8px", color: "#e5e7eb" }}>
+                        {r.energy ? r.energy.toFixed(3) : "--"}
+                      </td>
+                      <td style={{ padding: "6px 8px", color: "#e5e7eb" }}>
+                        {r.pf ? r.pf.toFixed(2) : "--"}
                       </td>
                     </tr>
                   ))}

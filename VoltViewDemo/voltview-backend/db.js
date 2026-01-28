@@ -20,9 +20,31 @@ db.serialize(() => {
       voltage REAL,
       current REAL,
       power REAL,
+      energy REAL,
+      frequency REAL,
+      pf REAL,
       timestamp TEXT
     )`
   );
+
+  // ===== MIGRATE EXISTING TABLE (Add new columns if they don't exist) =====
+  db.run(`ALTER TABLE readings ADD COLUMN energy REAL`, (err) => {
+    if (err && !err.message.includes("duplicate column")) {
+      console.error("Error adding energy column:", err);
+    }
+  });
+  
+  db.run(`ALTER TABLE readings ADD COLUMN frequency REAL`, (err) => {
+    if (err && !err.message.includes("duplicate column")) {
+      console.error("Error adding frequency column:", err);
+    }
+  });
+  
+  db.run(`ALTER TABLE readings ADD COLUMN pf REAL`, (err) => {
+    if (err && !err.message.includes("duplicate column")) {
+      console.error("Error adding pf column:", err);
+    }
+  });
 
   // ===== DEMO USER CREATION =====
   const demoUsername = "demo";

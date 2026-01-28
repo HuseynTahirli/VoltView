@@ -102,7 +102,10 @@ function Analytics() {
                     <th style={{ textAlign: "left", padding: "8px 10px", color: "#9fb3d1" }}>Time</th>
                     <th style={{ textAlign: "right", padding: "8px 10px", color: "#9fb3d1" }}>Voltage (V)</th>
                     <th style={{ textAlign: "right", padding: "8px 10px", color: "#9fb3d1" }}>Current (A)</th>
-                    <th style={{ textAlign: "right", padding: "8px 10px", color: "#9fb3d1" }}>Power (kW)</th>
+                    <th style={{ textAlign: "right", padding: "8px 10px", color: "#9fb3d1" }}>Power (W)</th>
+                    <th style={{ textAlign: "right", padding: "8px 10px", color: "#9fb3d1" }}>Energy (kWh)</th>
+                    <th style={{ textAlign: "right", padding: "8px 10px", color: "#9fb3d1" }}>Freq (Hz)</th>
+                    <th style={{ textAlign: "right", padding: "8px 10px", color: "#9fb3d1" }}>PF</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -112,6 +115,9 @@ function Analytics() {
                       <td style={{ padding: "8px 10px", textAlign: "right" }}>{r.voltage}</td>
                       <td style={{ padding: "8px 10px", textAlign: "right" }}>{r.current}</td>
                       <td style={{ padding: "8px 10px", textAlign: "right" }}>{r.power}</td>
+                      <td style={{ padding: "8px 10px", textAlign: "right" }}>{r.energy ? r.energy.toFixed(3) : "--"}</td>
+                      <td style={{ padding: "8px 10px", textAlign: "right" }}>{r.frequency ? r.frequency.toFixed(1) : "--"}</td>
+                      <td style={{ padding: "8px 10px", textAlign: "right" }}>{r.pf ? r.pf.toFixed(2) : "--"}</td>
                     </tr>
                   ))}
                 </tbody>
