@@ -125,11 +125,11 @@
             <span class="ep-live-dot"></span>
           </div>
           <div class="ep-panel-body">
-            <div class="ep-panel-label">Power: <span class="ep-panel-value"><span id="live-power">--</span> <span class="ep-unit">kW</span></span>
+            <div class="ep-panel-label">Power:<span class="ep-panel-value">1.78 <span class="ep-unit">kW</span></span>
             </div>
-            <div class="ep-panel-label">Voltage: <span class="ep-panel-value"><span id="live-voltage">--</span> <span
+            <div class="ep-panel-label">Voltage:<span class="ep-panel-value">235.01 <span
                   class="ep-unit">V</span></span></div>
-            <div class="ep-panel-label">Current: <span class="ep-panel-value"><span id="live-current">--</span> <span class="ep-unit">A</span></span>
+            <div class="ep-panel-label">Current:<span class="ep-panel-value">7.11 <span class="ep-unit">A</span></span>
             </div>
           </div>
         </div>
@@ -140,9 +140,9 @@
             <span class="ep-live-dot"></span>
           </div>
           <div class="ep-panel-body">
-            <div class="ep-panel-label">Status <span class="ep-panel-value" id="device-status">Connecting...</span></div>
-            <div class="ep-panel-label">Frequency <span class="ep-panel-value"><span id="device-frequency">--</span> Hz</span></div>
-            <div class="ep-panel-label">Power Factor <span class="ep-panel-value" id="device-pf">--</span></div>
+            <div class="ep-panel-label">Status <span class="ep-panel-value">Online</span></div>
+            <div class="ep-panel-label">Firmware <span class="ep-panel-value">v2.14</span></div>
+            <div class="ep-panel-label">Packet Loss: <span class="ep-panel-value">0.02%</span></div>
           </div>
         </div>
       </div>
@@ -205,7 +205,6 @@
     </section>
     <footer class="ep-footer">VoltView Dashboard &copy; 2025</footer>
   </main>
-  <script src="dashboard-api.js" defer></script>
 </body>
 
 </html>
