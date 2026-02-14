@@ -13,21 +13,23 @@ body {
     box-sizing: border-box !important;
 }
 
+* {
+    box-sizing: border-box !important;
+}
+
 /* 2. Reset Main Content Container */
 .ep-content {
     width: 100% !important;
     max-width: 100% !important;
-    margin: 58px auto 0 auto !important;
-    /* Top margin for nav, auto for sides */
+    margin: 58px 0 0 0 !important;
+    /* Top margin for nav, 0 for sides */
     padding: 20px !important;
     box-sizing: border-box !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    /* Flex center alignment is more robust */
+    display: block !important;
     position: relative !important;
-    left: auto !important;
-    right: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    overflow-x: hidden !important;
 }
 
 /* 3. Reset Dashboard Structure */
@@ -35,10 +37,11 @@ body {
     width: 100% !important;
     max-width: 1400px !important;
     margin: 0 auto !important;
-    padding: 0 !important;
+    padding: 0 20px !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
+    box-sizing: border-box !important;
 }
 
 /* 4. Force Row Centering */
@@ -61,28 +64,33 @@ body {
 /* 5. Fix Individual Card Containers to be contained */
 .live-waveform-card {
     margin: 0 auto !important;
-    width: 95% !important;
-    max-width: 800px !important;
+    width: 100% !important;
+    max-width: 900px !important;
+    box-sizing: border-box !important;
 }
 
 .ep-row-tiles {
     display: grid !important;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
     justify-content: center !important;
     gap: 20px !important;
     width: 100% !important;
-    max-width: 800px !important;
+    max-width: 100% !important;
+    padding: 0 20px !important;
+    box-sizing: border-box !important;
 }
 
 /* 6. Fix Graphs Grid */
 .ep-graphs-grid {
     display: grid !important;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
     gap: 20px !important;
     width: 100% !important;
-    max-width: 1400px !important;
+    max-width: 100% !important;
     margin: 30px auto !important;
+    padding: 0 20px !important;
     justify-content: center !important;
+    box-sizing: border-box !important;
 }
 
 /* 7. Nuclear Option for DashPanel */
@@ -98,4 +106,84 @@ body {
     width: 90% !important;
     max-width: 600px !important;
     margin: 20px auto !important;
+}
+
+/* 9. Fix for all page containers */
+.ep-grid-main,
+.ep-alerts-container,
+.ep-devices-container,
+.ep-reports-container,
+.ep-settings-container,
+.ep-help-container {
+    width: 100% !important;
+    max-width: 1400px !important;
+    margin: 0 auto !important;
+    padding: 20px !important;
+    box-sizing: border-box !important;
+}
+
+/* 10. Ensure header is full width */
+.ep-topnav {
+    width: 100% !important;
+    max-width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* 11. Fix tables and panels */
+.readings-table,
+.ep-dashboard-panel,
+.ep-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* 12. Media query fixes for all screen sizes */
+@media (max-width: 1024px) {
+    .ep-content {
+        padding: 15px !important;
+    }
+    
+    .ep-dashboard-struct {
+        padding: 0 15px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .ep-content {
+        padding: 10px !important;
+    }
+    
+    .ep-dashboard-struct {
+        padding: 0 10px !important;
+    }
+}
+/* 13. CRITICAL FIX: Override problematic transform scale from style.css */
+html,
+body,
+.ep-content,
+main,
+* {
+    transform: none !important;
+}
+
+/* 14. Force proper viewport handling */
+.ep-content {
+    transform-origin: initial !important;
+}
+
+.ep-grid-main {
+    width: 100% !important;
+    max-width: 1400px !important;
+    grid-template-columns: minmax(300px, 480px) 1fr !important;
+}
+
+@media (max-width: 900px) {
+    .ep-grid-main {
+        grid-template-columns: 1fr !important;
+    }
 }

@@ -1,0 +1,625 @@
+/* UI IMPROVEMENTS - Reduced Glow Effects & Better Readability */
+/* This file reduces excessive glow effects and improves content visibility */
+
+/* 1. Reduce Box Shadow Glow on Main UI Panels */
+.ep-content,
+.ep-card,
+.ep-dashboard-tile,
+.ep-dashboard-panel,
+.live-waveform-card,
+.readings-table,
+.ep-table-section-neon,
+.ep-alerts-container,
+.ep-analytics-card,
+.ep-settings-card,
+.ep-smallcard {
+  box-shadow: 0 0 15px rgba(5, 234, 253, 0.08),
+              0 0 8px rgba(253, 58, 175, 0.1),
+              0 0 40px rgba(188, 19, 254, 0.08) !important;
+  backdrop-filter: blur(2px) !important;
+}
+
+/* 2. Reduce Text Shadow on Headings for Better Readability */
+h1,
+h2,
+h3,
+h4,
+.ep-logo-text,
+.ep-alerts-title,
+.ep-card-title,
+.ep-panel-title {
+  text-shadow: 0 0 8px rgba(5, 234, 253, 0.5),
+               0 0 4px rgba(253, 58, 175, 0.3) !important;
+}
+
+/* 3. Reduce Navigation Glow */
+.ep-topnav {
+  box-shadow: 0 2px 12px rgba(0, 234, 253, 0.15),
+              0 2px 0 rgba(0, 234, 253, 0.1) !important;
+}
+
+.ep-logo-svg svg {
+  filter: drop-shadow(0 0 4px rgba(34, 247, 255, 0.6)) !important;
+}
+
+.ep-logo-text {
+  text-shadow: 0 0 6px rgba(41, 240, 255, 0.4) !important;
+}
+
+.ep-navbtn {
+  text-shadow: 0 0 5px rgba(20, 234, 255, 0.4) !important;
+  box-shadow: 0 0 4px rgba(5, 234, 253, 0.3),
+              0 0 12px rgba(5, 234, 253, 0.15) !important;
+}
+
+.ep-navbtn:hover {
+  box-shadow: 0 0 6px rgba(5, 234, 253, 0.5),
+              0 0 15px rgba(5, 234, 253, 0.2) !important;
+  text-shadow: 0 0 8px #4fffff, 0 0 3px rgba(255, 255, 255, 0.6) !important;
+}
+
+.ep-navbtn.active {
+  box-shadow: 0 0 6px rgba(5, 234, 253, 0.5),
+              0 0 15px rgba(5, 234, 253, 0.2) !important;
+  text-shadow: 0 0 8px #4fffff, 0 0 3px rgba(255, 255, 255, 0.6) !important;
+}
+
+/* 4. Improve Button Visibility */
+a,
+.ep-btn,
+.ep-settings-card select,
+.ep-settings-card button,
+.live-waveform-btn {
+  text-shadow: 0 0 5px rgba(253, 196, 50, 0.4),
+               0 0 8px rgba(5, 234, 253, 0.3) !important;
+  box-shadow: 0 0 6px rgba(5, 234, 253, 0.3),
+              0 0 10px rgba(253, 196, 50, 0.25) !important;
+}
+
+/* 5. Reduce Table Header Glow */
+.ep-table th {
+  text-shadow: 0 0 5px #fdc432, 0 0 6px rgba(5, 234, 253, 0.4) !important;
+}
+
+/* 6. Improve Stat Values Readability */
+.ep-stat-value,
+.ep-counter-value {
+  text-shadow: 0 0 6px rgba(0, 251, 168, 0.5),
+               0 0 3px rgba(0, 251, 168, 0.3) !important;
+  color: #00fba8 !important;
+}
+
+/* 7. Reduce Panel Label Glow */
+.ep-stat-label,
+.ep-panel-label {
+  text-shadow: 0 0 4px rgba(253, 196, 50, 0.3) !important;
+}
+
+/* 8. Improve Alert and Live Waveform Visibility */
+.live-waveform-title,
+.ep-alert-res-btn-big {
+  text-shadow: 0 0 8px rgba(5, 234, 253, 0.5),
+               0 0 10px rgba(188, 19, 254, 0.4) !important;
+}
+
+/* 9. Reduce Neon Rail Glow */
+.neonRail {
+  box-shadow: 0 0 8px 2px rgba(0, 230, 255, 0.5) !important;
+}
+
+/* 10. Improve Dashboard Tile Visibility */
+.ep-dashboard-tile {
+  box-shadow: 0 3px 12px rgba(19, 120, 191, 0.25) !important;
+}
+
+.ep-glow-card {
+  box-shadow: 0 0 15px rgba(0, 255, 247, 0.2),
+              0 2px 10px rgba(0, 234, 234, 0.3) !important;
+}
+
+/* 11. Reduce Live Bar and Progress Bar Glow */
+.ep-live-bar {
+  box-shadow: 0 0 6px rgba(15, 255, 102, 0.4) !important;
+}
+
+/* 12. Improve Search Bar Visibility */
+.ep-dashboard-searchbar input {
+  box-shadow: 0 0 12px rgba(0, 143, 255, 0.3) !important;
+}
+
+.ep-dashboard-searchbar input:focus {
+  box-shadow: 0 0 18px rgba(40, 239, 255, 0.6) !important;
+}
+
+/* 13. Reduce Quick Search Results Glow */
+.ep-search-results {
+  box-shadow: 0 2px 8px rgba(9, 255, 196, 0.25) !important;
+}
+
+/* 14. Improve Alert Items Visibility */
+.ep-alert-item {
+  box-shadow: 0 0 15px rgba(9, 255, 224, 0.3),
+              0 2px 10px rgba(0, 234, 234, 0.25) !important;
+}
+
+/* 15. Improve Activity Item Text */
+.ep-activity-item-title {
+  text-shadow: 0 0 20px rgba(22, 254, 250, 0.5),
+               0 0 8px rgba(0, 255, 247, 0.4) !important;
+}
+
+/* 16. Reduce Waveform Card Glow */
+.live-waveform-card {
+  box-shadow: 0 0 12px rgba(0, 255, 247, 0.15),
+              0 0 30px rgba(0, 236, 255, 0.2) !important;
+}
+
+.live-waveform-title {
+  text-shadow: 0 0 6px #0ff, 0 0 12px rgba(0, 255, 224, 0.2) !important;
+}
+
+/* 17. Improve Button Hover States */
+.live-waveform-btn:hover,
+.ep-btn:hover {
+  box-shadow: 0 0 15px rgba(0, 255, 247, 0.6),
+              0 0 35px rgba(6, 255, 247, 0.35) !important;
+  text-shadow: 0 0 8px #0ff, 0 0 12px rgba(0, 255, 224, 0.2) !important;
+}
+
+/* 18. Reduce Scrollbar Glow */
+::-webkit-scrollbar-thumb {
+  box-shadow: 0 0 5px #05eafd, 0 0 10px rgba(253, 58, 175, 0.35) !important;
+}
+
+/* 19. Improve Panel Neon Bars (reduce intensity) */
+.ep-usage-neon-bar,
+.ep-peak-neon-bar,
+.ep-avgvolt-neon-bar,
+.ep-load-neon-bar,
+.ep-livepower-neon-bar,
+.ep-health-neon-bar {
+  opacity: 0.5 !important;
+  box-shadow: 0 0 8px currentColor, 0 0 15px currentColor !important;
+}
+
+/* 20. Better Text Contrast for Body Text */
+body,
+.ep-panel-body,
+.ep-table td,
+.ep-counter-label,
+p,
+span {
+  color: #e0f2ff !important;
+  text-shadow: none !important;
+}
+
+/* 21. Improve Table Readability */
+.ep-table {
+  background: rgba(24, 17, 41, 0.85) !important;
+}
+
+.ep-table tr {
+  border-bottom: 1px solid rgba(188, 19, 254, 0.15) !important;
+}
+
+.ep-table tr:hover {
+  background: rgba(5, 234, 253, 0.05) !important;
+}
+
+/* 22. Reduce Flicker Animation Intensity */
+@keyframes cp-flicker {
+  0%, 47%, 100% {
+    opacity: 0.95;
+    filter: blur(0px);
+  }
+  43% {
+    opacity: 0.9;
+    filter: blur(0.3px);
+  }
+  55%, 56% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  81% {
+    opacity: 0.97;
+  }
+}
+
+/* 23. Improve Form Elements Visibility */
+input,
+select,
+textarea {
+  background: rgba(24, 17, 41, 0.8) !important;
+  border: 1px solid rgba(188, 19, 254, 0.4) !important;
+  color: #e0f2ff !important;
+  text-shadow: none !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: rgba(5, 234, 253, 0.6) !important;
+  box-shadow: 0 0 10px rgba(5, 234, 253, 0.3) !important;
+}
+
+/* 24. Better Contrast for Counter Values */
+.ep-counter-value {
+  font-weight: 700 !important;
+  color: #00fba8 !important;
+  text-shadow: 0 0 4px rgba(0, 251, 168, 0.4) !important;
+}
+
+/* 25. Improve Panel Value Readability */
+.ep-panel-value {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  text-shadow: 0 0 3px rgba(255, 255, 255, 0.3) !important;
+}
+
+/* 26. Reduce Background Canvas Opacity for Better Contrast */
+.cyber-bg-canvas {
+  opacity: 0.7 !important;
+}
+
+/* 27. Improve Footer Visibility */
+.ep-footer {
+  text-shadow: none !important;
+  color: #a0b8cc !important;
+}
+
+/* 28. Better Device Status Indicators */
+.ep-device-status {
+  text-shadow: 0 0 4px currentColor !important;
+}
+
+/* 29. Improve Modal/Alert Visibility */
+.ep-modal,
+.ep-alert {
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5),
+              0 0 15px rgba(5, 234, 253, 0.2) !important;
+}
+
+/* 30. Better Chart Container Visibility */
+.live-metric-chart-container,
+.ep-chart-container {
+  background: rgba(18, 28, 50, 0.6) !important;
+  border: 1px solid rgba(188, 19, 254, 0.2) !important;
+  border-radius: 8px !important;
+  padding: 10px !important;
+}
+
+/* === ADDITIONAL UI IMPROVEMENTS === */
+
+/* 31. Better Card Spacing and Layout */
+.ep-glow-card,
+.graph-card {
+  padding: 1.5rem !important;
+  margin-bottom: 1rem !important;
+  border-radius: 10px !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.ep-glow-card:hover,
+.graph-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 0 20px rgba(0, 255, 247, 0.3), 0 4px 15px rgba(0, 234, 234, 0.4) !important;
+}
+
+/* 32. Improve Dashboard Tile Layout */
+.ep-dashboard-tile {
+  padding: 1.5rem !important;
+  border-radius: 10px !important;
+  transition: all 0.2s ease !important;
+}
+
+.ep-dashboard-tile:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 5px 20px rgba(19, 120, 191, 0.4) !important;
+}
+
+/* 33. Better Panel Spacing */
+.ep-dashboard-panel {
+  padding: 1.5rem !important;
+  border-radius: 10px !important;
+  margin-bottom: 1rem !important;
+}
+
+/* 34. Improve Waveform Card Design */
+.live-waveform-card {
+  border-radius: 12px !important;
+  padding: 2rem !important;
+  margin-bottom: 2rem !important;
+}
+
+.live-waveform-graph-bg {
+  border-radius: 8px !important;
+  background: rgba(18, 28, 50, 0.5) !important;
+  padding: 1rem !important;
+  margin: 1rem 0 !important;
+}
+
+/* 35. Better Button Styling */
+.live-waveform-btn,
+.ep-btn {
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+.live-waveform-btn:hover,
+.ep-btn:hover {
+  transform: translateY(-2px) !important;
+}
+
+/* 36. Improve Table Design */
+.ep-table {
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(188, 19, 254, 0.2) !important;
+}
+
+.ep-table thead {
+  background: linear-gradient(93deg, #250B3E 0%, rgba(188, 19, 254, 0.3) 100%) !important;
+}
+
+.ep-table th {
+  padding: 1rem !important;
+  font-weight: 600 !important;
+  border-bottom: 2px solid rgba(188, 19, 254, 0.3) !important;
+}
+
+.ep-table td {
+  padding: 0.875rem 1rem !important;
+}
+
+/* 37. Better Alert Container */
+.ep-alerts-container {
+  border-radius: 10px !important;
+  padding: 2rem !important;
+}
+
+.ep-alerts-title {
+  font-size: 1.5rem !important;
+  margin-bottom: 1.5rem !important;
+  padding-bottom: 0.75rem !important;
+  border-bottom: 2px solid rgba(5, 234, 253, 0.2) !important;
+}
+
+/* 38. Improve Counter Layout */
+.ep-counter-icon {
+  margin-bottom: 0.75rem !important;
+}
+
+.ep-counter-label {
+  font-size: 0.875rem !important;
+  margin-bottom: 0.5rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  opacity: 0.8 !important;
+}
+
+.ep-counter-value {
+  font-size: 2rem !important;
+  margin-bottom: 0.5rem !important;
+  line-height: 1.2 !important;
+}
+
+/* 39. Better Panel Header */
+.ep-panel-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 1.25rem !important;
+  padding-bottom: 0.75rem !important;
+  border-bottom: 1px solid rgba(188, 19, 254, 0.2) !important;
+}
+
+.ep-panel-title {
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+}
+
+/* 40. Improve Panel Body Layout */
+.ep-panel-body {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.875rem !important;
+}
+
+.ep-panel-label {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 0.5rem 0 !important;
+}
+
+/* 41. Better Navigation Design */
+.ep-topnav {
+  padding: 0.75rem 2rem !important;
+  backdrop-filter: blur(10px) !important;
+  background: rgba(24, 17, 41, 0.95) !important;
+}
+
+.ep-navlinks {
+  display: flex !important;
+  gap: 0.5rem !important;
+  align-items: center !important;
+}
+
+.ep-navbtn {
+  padding: 0.625rem 1.25rem !important;
+  border-radius: 6px !important;
+  font-size: 0.9rem !important;
+  transition: all 0.2s ease !important;
+  text-decoration: none !important;
+  display: inline-block !important;
+}
+
+/* 42. Better Logo Design */
+.ep-logo-link {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.ep-logo-link:hover {
+  transform: scale(1.05) !important;
+}
+
+.ep-logo-text {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+}
+
+/* 43. Better Footer Design */
+.ep-footer {
+  text-align: center !important;
+  padding: 2rem !important;
+  margin-top: 3rem !important;
+  border-top: 1px solid rgba(188, 19, 254, 0.15) !important;
+  font-size: 0.875rem !important;
+}
+
+/* 44. Improve Responsive Behavior */
+@media (max-width: 768px) {
+  .ep-counter-value {
+    font-size: 1.5rem !important;
+  }
+  .ep-panel-title {
+    font-size: 1.1rem !important;
+  }
+  .ep-alerts-title {
+    font-size: 1.25rem !important;
+  }
+  .live-waveform-card {
+    padding: 1.25rem !important;
+  }
+  .ep-navlinks {
+    gap: 0.25rem !important;
+  }
+  .ep-navbtn {
+    padding: 0.5rem 0.875rem !important;
+    font-size: 0.85rem !important;
+  }
+}
+
+/* 45. Better Card Title Styling */
+.ep-card-title {
+  font-size: 1.125rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 1rem !important;
+  padding-bottom: 0.5rem !important;
+  border-bottom: 1px solid rgba(188, 19, 254, 0.15) !important;
+}
+
+/* 46. Improve Unit Display */
+.ep-unit {
+  font-size: 0.875em !important;
+  opacity: 0.7 !important;
+  margin-left: 0.25rem !important;
+}
+
+/* 47. Better Neon Bar Design */
+.ep-usage-neon-bar,
+.ep-peak-neon-bar,
+.ep-avgvolt-neon-bar,
+.ep-load-neon-bar,
+.ep-livepower-neon-bar,
+.ep-health-neon-bar {
+  height: 3px !important;
+  border-radius: 2px !important;
+  margin-bottom: 1rem !important;
+}
+
+/* 48. Improve Overall Content Readability */
+.ep-content {
+  line-height: 1.6 !important;
+}
+
+/* 49. Improve Button Row Layout */
+.live-waveform-btn-row {
+  display: flex !important;
+  gap: 1rem !important;
+  justify-content: center !important;
+  margin-top: 1.5rem !important;
+  flex-wrap: wrap !important;
+}
+
+/* 50. Better Contrast for Important Values */
+.ep-counter-value,
+.ep-panel-value {
+  font-family: 'Orbitron', monospace !important;
+}
+
+/* === NAVBAR OVERFLOW FIX === */
+/* Fix for navbar tabs going out of page */
+.ep-topnav {
+  padding: 0.75rem 1rem !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 1rem !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+}
+
+.ep-navlinks {
+  gap: 0.35rem !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+  flex: 1 !important;
+  max-width: calc(100% - 200px) !important;
+}
+
+.ep-navbtn {
+  padding: 0.5rem 0.85rem !important;
+  font-size: 0.85rem !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+/* Better responsive navbar */
+@media (max-width: 1200px) {
+  .ep-navbtn {
+    padding: 0.45rem 0.7rem !important;
+    font-size: 0.8rem !important;
+  }
+  
+  .ep-navlinks {
+    gap: 0.25rem !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .ep-topnav {
+    padding: 0.5rem 0.75rem !important;
+  }
+  
+  .ep-navbtn {
+    padding: 0.4rem 0.6rem !important;
+    font-size: 0.75rem !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .ep-topnav {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+  
+  .ep-navlinks {
+    width: 100% !important;
+    max-width: 100% !important;
+    justify-content: flex-start !important;
+  }
+  
+  .ep-navbtn {
+    font-size: 0.85rem !important;
+    padding: 0.5rem 0.85rem !important;
+  }
+}

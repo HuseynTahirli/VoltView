@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VoltView Devices</title>
+  <title>VoltView Reports</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css?v=2" />
   <link rel="stylesheet" href="responsive-fixes.css?v=2" />
@@ -25,9 +25,9 @@
     <nav class="ep-navlinks">
       <a href="index.html" class="ep-navbtn">Dashboard</a>
       <a href="analytics.html" class="ep-navbtn">Analytics</a>
-      <a href="devices.html" class="ep-navbtn active">Devices</a>
+      <a href="devices.html" class="ep-navbtn">Devices</a>
       <a href="live-readings.html" class="ep-navbtn">Live Readings</a>
-      <a href="reports.html" class="ep-navbtn">Reports</a>
+      <a href="reports.html" class="ep-navbtn active">Reports</a>
       <a href="alerts.html" class="ep-navbtn">Alerts</a>
       <a href="settings.html" class="ep-navbtn">Settings</a>
       <a href="help.html" class="ep-navbtn">Help</a>
@@ -37,35 +37,22 @@
     <input type="text" id="ep-quicksearch" placeholder="🔎 Search dashboard functions..." autocomplete="off"/>
     <div id="ep-quicksearch-results" class="ep-search-results"></div>
   </div>
-  <main class="ep-content" style="margin-left:220px;">
-    <div class="ep-table-section-neon">
-      <div class="ep-table-title-neon">Connected Devices</div>
-      <div id="ep-devices-table-outer">
-        <table class="ep-table" id="ep-devices-table">
+  <main class="ep-content">
+    <div class="ep-card" id="ep-reports-card">
+      <h2>Reports</h2>
+      <div class="ep-report-table-outer">
+        <table class="ep-table" id="ep-report-table">
           <thead>
-            <tr>
-              <th class="ep-table-icon-col"></th>
-              <th class="ep-table-name-col">Name</th>
-              <th class="ep-table-status-col">Status</th>
-              <th class="ep-table-type-col">Type</th>
-              <th class="ep-table-watts-col">Watts</th>
-            </tr>
+            <tr><th>Date</th><th>Download</th><th>Summary</th><th>Type</th><th>Status</th></tr>
           </thead>
-          <tbody id="ep-device-tbody"></tbody>
-          <tfoot>
-            <tr class="ep-total-row">
-              <td colspan="4" style="text-align:right;padding-right:2.3em;font-size:1.06em;opacity:.98;color:#11fee7;font-weight:700;letter-spacing:.04em;border-top:2.2px solid #5ff1e881;background:rgba(0,255,247,0.04)">Total power draw:</td>
-              <td id="ep-devices-total" style="color:#fff;font-weight:900;font-size:1.16em;text-shadow:0 0 13px #00ffd7c9;">… W</td>
-            </tr>
-          </tfoot>
+          <tbody id="reports-tbody">
+            <tr><td>2025-12-10</td><td><a href="#">PDF</a></td><td>Daily energy, peaks, anomalies</td><td>Daily</td><td style="color:#63fc95;font-weight:bold;">Generated</td></tr>
+            <tr><td>2025-12-09</td><td><a href="#">PDF</a></td><td>Daily energy, peaks</td><td>Daily</td><td style="color:#63fc95;font-weight:bold;">Generated</td></tr>
+            <tr><td>2025-12-08</td><td><a href="#">PDF</a></td><td>Daily energy</td><td>Daily</td><td style="color:#ffd429;font-weight:bold;">Pending</td></tr>
+          </tbody>
         </table>
       </div>
     </div>
   </main>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      if(window.populateDeviceTable) populateDeviceTable();
-    });
-  </script>
 </body>
 </html>

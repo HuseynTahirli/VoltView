@@ -347,3 +347,212 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 });
+
+// ========= THEME CHANGE FUNCTIONALITY ========= //
+document.addEventListener('DOMContentLoaded', function () {
+  const themeSelect = document.querySelector('.ep-select');
+  const saveBtn = document.querySelector('.ep-btn-save');
+  
+  // Load saved theme from localStorage
+  const savedTheme = localStorage.getItem('voltview-theme') || 'Cyberpunk';
+  
+  if (themeSelect) {
+    // Set the dropdown to saved theme
+    themeSelect.value = savedTheme;
+    
+    // Apply theme on load
+    applyTheme(savedTheme);
+    
+    // Listen for theme changes
+    themeSelect.addEventListener('change', function() {
+      const selectedTheme = this.value;
+      applyTheme(selectedTheme);
+    });
+  }
+  
+  // Save settings button
+  if (saveBtn) {
+    saveBtn.addEventListener('click', function() {
+      if (themeSelect) {
+        const selectedTheme = themeSelect.value;
+        localStorage.setItem('voltview-theme', selectedTheme);
+        
+        // Show success message
+        const originalText = this.textContent;
+        this.textContent = 'Settings Saved!';
+        this.style.background = 'linear-gradient(93deg, #00fba8 0%, #05eafd 100%)';
+        
+        setTimeout(() => {
+          this.textContent = originalText;
+          this.style.background = '';
+        }, 2000);
+      }
+    });
+  }
+  
+  function applyTheme(theme) {
+    const root = document.documentElement;
+    
+    switch(theme) {
+      case 'Classic':
+        // Classic theme - lighter, more professional
+        root.style.setProperty('--cp-bg-dark', '#1a1a2e');
+        root.style.setProperty('--cp-bg-deep', '#16213e');
+        root.style.setProperty('--cp-bg-mid', '#0f3460');
+        root.style.setProperty('--cp-purple', '#6c5ce7');
+        root.style.setProperty('--cp-pink', '#fd79a8');
+        root.style.setProperty('--cp-cyan', '#74b9ff');
+        root.style.setProperty('--cp-yellow', '#fdcb6e');
+        root.style.setProperty('--cp-neon-green', '#55efc4');
+        document.body.style.background = '#16213e';
+        break;
+        
+      case 'Dark':
+        // Dark theme - minimal glow, high contrast
+        root.style.setProperty('--cp-bg-dark', '#0a0a0a');
+        root.style.setProperty('--cp-bg-deep', '#1a1a1a');
+        root.style.setProperty('--cp-bg-mid', '#2a2a2a');
+        root.style.setProperty('--cp-purple', '#9b59b6');
+        root.style.setProperty('--cp-pink', '#e91e63');
+        root.style.setProperty('--cp-cyan', '#3498db');
+        root.style.setProperty('--cp-yellow', '#f39c12');
+        root.style.setProperty('--cp-neon-green', '#2ecc71');
+        document.body.style.background = '#0a0a0a';
+        break;
+        
+      case 'Cyberpunk':
+      default:
+        // Cyberpunk theme - original vibrant colors
+        root.style.setProperty('--cp-bg-dark', '#060511');
+        root.style.setProperty('--cp-bg-deep', '#1a1039');
+        root.style.setProperty('--cp-bg-mid', '#1f1642');
+        root.style.setProperty('--cp-purple', '#bc13fe');
+        root.style.setProperty('--cp-pink', '#fd3aaf');
+        root.style.setProperty('--cp-cyan', '#05eafd');
+        root.style.setProperty('--cp-yellow', '#fdc432');
+        root.style.setProperty('--cp-neon-green', '#00fba8');
+        document.body.style.background = '#141822';
+        break;
+    }
+  }
+});
+
+// ========= ENHANCED SETTINGS FUNCTIONALITY (System Name & Email Alerts) ========= //
+document.addEventListener('DOMContentLoaded', function () {
+  const systemNameInput = document.querySelector('.ep-input');
+  const emailAlertsCheckbox = document.querySelector('.ep-checkbox');
+  const saveBtn = document.querySelector('.ep-btn-save');
+  const themeSelect = document.querySelector('.ep-select');
+
+  // Load saved settings from localStorage
+  const savedSystemName = localStorage.getItem('voltview-system-name') || 'VoltView HQ';
+  const savedEmailAlerts = localStorage.getItem('voltview-email-alerts') === 'true';
+
+  // Apply saved system name
+  if (systemNameInput) {
+    systemNameInput.value = savedSystemName;
+    
+    // Update system name in real-time across the page
+    updateSystemNameDisplay(savedSystemName);
+  }
+
+  // Apply saved email alerts preference
+  if (emailAlertsCheckbox) {
+    emailAlertsCheckbox.checked = savedEmailAlerts;
+  }
+
+  // Enhanced Save button with all settings
+  if (saveBtn) {
+    // Remove previous event listeners and add comprehensive one
+    const newSaveBtn = saveBtn.cloneNode(true);
+    saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+    
+    newSaveBtn.addEventListener('click', function() {
+      let savedCount = 0;
+      
+      // Save theme
+      if (themeSelect) {
+        localStorage.setItem('voltview-theme', themeSelect.value);
+        savedCount++;
+      }
+      
+      // Save system name
+      if (systemNameInput) {
+        const newSystemName = systemNameInput.value.trim() || 'VoltView HQ';
+        localStorage.setItem('voltview-system-name', newSystemName);
+        updateSystemNameDisplay(newSystemName);
+        savedCount++;
+      }
+      
+      // Save email alerts
+      if (emailAlertsCheckbox) {
+        localStorage.setItem('voltview-email-alerts', emailAlertsCheckbox.checked);
+        savedCount++;
+      }
+
+      // Show success message with count
+      const originalText = this.textContent;
+      this.textContent = `✓ ${savedCount} Settings Saved!`;
+      this.style.background = 'linear-gradient(93deg, #00fba8 0%, #05eafd 100%)';
+      this.style.color = '#000';
+      this.style.fontWeight = 'bold';
+
+      setTimeout(() => {
+        this.textContent = originalText;
+        this.style.background = '';
+        this.style.color = '';
+        this.style.fontWeight = '';
+      }, 2500);
+    });
+  }
+
+  // Function to update system name display across the page
+  function updateSystemNameDisplay(name) {
+    // Update page title if needed
+    const titleElements = document.querySelectorAll('h1, .system-name-display');
+    titleElements.forEach(el => {
+      if (el.classList.contains('system-name-display')) {
+        el.textContent = name;
+      }
+    });
+  }
+
+  // Show current settings status on page load
+  if (systemNameInput || emailAlertsCheckbox || themeSelect) {
+    console.log('VoltView Settings Loaded:');
+    console.log('- System Name:', savedSystemName);
+    console.log('- Email Alerts:', savedEmailAlerts ? 'Enabled' : 'Disabled');
+    console.log('- Theme:', localStorage.getItem('voltview-theme') || 'Cyberpunk');
+  }
+});
+
+// ========= SETTINGS PAGE WITH PROPER IDs ========= //
+document.addEventListener('DOMContentLoaded', function () {
+  // Get elements by ID for better specificity
+  const systemNameInput = document.getElementById('system-name-input');
+  const emailAlertsCheckbox = document.getElementById('email-alerts-checkbox');
+  const themeSelect = document.getElementById('theme-select');
+  
+  // Only run on settings page
+  if (!systemNameInput && !emailAlertsCheckbox && !themeSelect) {
+    return; // Not on settings page
+  }
+
+  // Load saved settings
+  const savedSystemName = localStorage.getItem('voltview-system-name') || 'VoltView HQ';
+  const savedEmailAlerts = localStorage.getItem('voltview-email-alerts') !== 'false'; // Default true
+  const savedTheme = localStorage.getItem('voltview-theme') || 'Cyberpunk';
+
+  // Apply saved values
+  if (systemNameInput) {
+    systemNameInput.value = savedSystemName;
+  }
+
+  if (emailAlertsCheckbox) {
+    emailAlertsCheckbox.checked = savedEmailAlerts;
+  }
+
+  if (themeSelect) {
+    themeSelect.value = savedTheme;
+  }
+});

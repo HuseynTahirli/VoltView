@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Theme Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=2" />
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Orbitron', sans-serif;
+    }
+    .test-container {
+      background: var(--cp-bg-mid);
+      padding: 3rem;
+      border-radius: 15px;
+      border: 2px solid var(--cp-cyan);
+      text-align: center;
+      max-width: 600px;
+    }
+    h1 {
+      color: var(--cp-cyan);
+      margin-bottom: 2rem;
+    }
+    .theme-selector {
+      margin: 2rem 0;
+    }
+    select {
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+      background: var(--cp-bg-dark);
+      color: var(--cp-cyan);
+      border: 2px solid var(--cp-purple);
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Orbitron', sans-serif;
+    }
+    .color-demo {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    .color-box {
+      padding: 1.5rem;
+      border-radius: 8px;
+      font-weight: bold;
+      border: 2px solid rgba(255,255,255,0.2);
+    }
+    #status {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: rgba(0, 255, 247, 0.1);
+      border-radius: 8px;
+      color: var(--cp-neon-green);
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1>🎨 Theme Test</h1>
+    <p style="color: var(--cp-yellow);">Select a theme to see if colors change in real-time:</p>
+    
+    <div class="theme-selector">
+      <select id="test-theme-select">
+        <option value="Cyberpunk">Cyberpunk (Vibrant)</option>
+        <option value="Classic">Classic (Professional)</option>
+        <option value="Dark">Dark (Minimal)</option>
+      </select>
+    </div>
+    
+    <div class="color-demo">
+      <div class="color-box" style="background: var(--cp-cyan); color: #000;">Cyan</div>
+      <div class="color-box" style="background: var(--cp-purple); color: #fff;">Purple</div>
+      <div class="color-box" style="background: var(--cp-pink); color: #fff;">Pink</div>
+      <div class="color-box" style="background: var(--cp-yellow); color: #000;">Yellow</div>
+      <div class="color-box" style="background: var(--cp-neon-green); color: #000;">Green</div>
+      <div class="color-box" style="background: var(--cp-bg-mid); color: #fff; border: 2px solid var(--cp-cyan);">BG Mid</div>
+    </div>
+    
+    <div id="status">Ready - Select a theme above</div>
+  </div>
+
+  <script>
+    const themeSelect = document.getElementById('test-theme-select');
+    const status = document.getElementById('status');
+    
+    // Load saved theme
+    const savedTheme = localStorage.getItem('voltview-theme') || 'Cyberpunk';
+    themeSelect.value = savedTheme;
+    applyTheme(savedTheme);
+    
+    // Listen for changes
+    themeSelect.addEventListener('change', function() {
+      const theme = this.value;
+      applyTheme(theme);
+      localStorage.setItem('voltview-theme', theme);
+      status.textContent = `✓ Theme changed to: ${theme} - Colors should update immediately!`;
+      status.style.background = 'linear-gradient(93deg, #00fba8 0%, #05eafd 100%)';
+      status.style.color = '#000';
+      
+      setTimeout(() => {
+        status.style.background = 'rgba(0, 255, 247, 0.1)';
+        status.style.color = 'var(--cp-neon-green)';
+      }, 2000);
+    });
+    
+    function applyTheme(theme) {
+      const root = document.documentElement;
+      
+      switch(theme) {
+        case 'Classic':
+          root.style.setProperty('--cp-bg-dark', '#1a1a2e');
+          root.style.setProperty('--cp-bg-deep', '#16213e');
+          root.style.setProperty('--cp-bg-mid', '#0f3460');
+          root.style.setProperty('--cp-purple', '#6c5ce7');
+          root.style.setProperty('--cp-pink', '#fd79a8');
+          root.style.setProperty('--cp-cyan', '#74b9ff');
+          root.style.setProperty('--cp-yellow', '#fdcb6e');
+          root.style.setProperty('--cp-neon-green', '#55efc4');
+          document.body.style.background = '#16213e';
+          console.log('Applied Classic theme');
+          break;
+          
+        case 'Dark':
+          root.style.setProperty('--cp-bg-dark', '#0a0a0a');
+          root.style.setProperty('--cp-bg-deep', '#1a1a1a');
+          root.style.setProperty('--cp-bg-mid', '#2a2a2a');
+          root.style.setProperty('--cp-purple', '#9b59b6');
+          root.style.setProperty('--cp-pink', '#e91e63');
+          root.style.setProperty('--cp-cyan', '#3498db');
+          root.style.setProperty('--cp-yellow', '#f39c12');
+          root.style.setProperty('--cp-neon-green', '#2ecc71');
+          document.body.style.background = '#0a0a0a';
+          console.log('Applied Dark theme');
+          break;
+          
+        case 'Cyberpunk':
+        default:
+          root.style.setProperty('--cp-bg-dark', '#060511');
+          root.style.setProperty('--cp-bg-deep', '#1a1039');
+          root.style.setProperty('--cp-bg-mid', '#1f1642');
+          root.style.setProperty('--cp-purple', '#bc13fe');
+          root.style.setProperty('--cp-pink', '#fd3aaf');
+          root.style.setProperty('--cp-cyan', '#05eafd');
+          root.style.setProperty('--cp-yellow', '#fdc432');
+          root.style.setProperty('--cp-neon-green', '#00fba8');
+          document.body.style.background = '#141822';
+          console.log('Applied Cyberpunk theme');
+          break;
+      }
+    }
+  </script>
+</body>
+</html>

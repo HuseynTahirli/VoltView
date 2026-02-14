@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Settings Theme Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=2" />
+  <link rel="stylesheet" href="ui-improvements.css?v=2" />
+</head>
+<body>
+  <div style="padding: 3rem; max-width: 800px; margin: 0 auto;">
+    <h1 style="color: var(--cp-cyan);">Settings Theme Test</h1>
+    
+    <div style="background: var(--cp-bg-mid); padding: 2rem; border-radius: 10px; border: 2px solid var(--cp-purple); margin: 2rem 0;">
+      <h2>Theme Selector</h2>
+      <select class="ep-select" id="theme-test" style="padding: 1rem; font-size: 1.1rem; width: 100%; max-width: 400px;">
+        <option>Cyberpunk</option>
+        <option>Classic</option>
+        <option>Dark</option>
+      </select>
+      <p id="test-result" style="margin-top: 1rem; padding: 1rem; background: rgba(5, 234, 253, 0.1); border-radius: 6px;"></p>
+    </div>
+    
+    <div style="background: var(--cp-bg-mid); padding: 2rem; border-radius: 10px; border: 2px solid var(--cp-cyan); margin: 2rem 0;">
+      <h3 style="color: var(--cp-cyan);">Live Color Preview</h3>
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1rem;">
+        <div style="padding: 1.5rem; background: var(--cp-cyan); border-radius: 8px; color: #000; font-weight: bold;">Cyan Box</div>
+        <div style="padding: 1.5rem; background: var(--cp-purple); border-radius: 8px; color: #fff; font-weight: bold;">Purple Box</div>
+        <div style="padding: 1.5rem; background: var(--cp-pink); border-radius: 8px; color: #fff; font-weight: bold;">Pink Box</div>
+        <div style="padding: 1.5rem; background: var(--cp-yellow); border-radius: 8px; color: #000; font-weight: bold;">Yellow Box</div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="script.js"></script>
+  <script>
+    // Additional test to verify theme change
+    document.addEventListener('DOMContentLoaded', function() {
+      const testSelect = document.getElementById('theme-test');
+      const result = document.getElementById('test-result');
+      
+      if (testSelect) {
+        // Show initial theme
+        const currentTheme = localStorage.getItem('voltview-theme') || 'Cyberpunk';
+        testSelect.value = currentTheme;
+        result.textContent = `Current theme: ${currentTheme}. Change the dropdown to test!`;
+        result.style.color = 'var(--cp-neon-green)';
+        
+        // Monitor changes
+        testSelect.addEventListener('change', function() {
+          const newTheme = this.value;
+          result.textContent = `Theme changed to: ${newTheme}. Check if colors above changed!`;
+          result.style.background = 'linear-gradient(93deg, #00fba8 0%, #05eafd 100%)';
+          result.style.color = '#000';
+          
+          // Check CSS variable
+          setTimeout(() => {
+            const rootStyles = getComputedStyle(document.documentElement);
+            const cyanColor = rootStyles.getPropertyValue('--cp-cyan').trim();
+            result.textContent += ` | Cyan color is now: ${cyanColor}`;
+          }, 100);
+        });
+      }
+    });
+  </script>
+</body>
+</html>
