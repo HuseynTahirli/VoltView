@@ -13,7 +13,7 @@ db.serialize(() => {
     )`
   );
 
-  // ===== READINGS TABLE =====
+  // ===== NEW: READINGS TABLE =====
   db.run(
     `CREATE TABLE IF NOT EXISTS readings (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,43 +27,19 @@ db.serialize(() => {
     )`
   );
 
-  // ===== ALERTS TABLE =====
-  db.run(
-    `CREATE TABLE IF NOT EXISTS alerts (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      type TEXT,
-      message TEXT,
-      timestamp TEXT,
-      resolved INTEGER DEFAULT 0
-    )`
-  );
-
-  // ===== REPORTS TABLE =====
-  db.run(
-    `CREATE TABLE IF NOT EXISTS reports (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      date TEXT,
-      summary TEXT,
-      report_type TEXT,
-      status TEXT,
-      file_path TEXT,
-      created_at TEXT
-    )`
-  );
-
   // ===== MIGRATE EXISTING TABLE (Add new columns if they don't exist) =====
   db.run(`ALTER TABLE readings ADD COLUMN energy REAL`, (err) => {
     if (err && !err.message.includes("duplicate column")) {
       console.error("Error adding energy column:", err);
     }
   });
-
+  
   db.run(`ALTER TABLE readings ADD COLUMN frequency REAL`, (err) => {
     if (err && !err.message.includes("duplicate column")) {
       console.error("Error adding frequency column:", err);
     }
   });
-
+  
   db.run(`ALTER TABLE readings ADD COLUMN pf REAL`, (err) => {
     if (err && !err.message.includes("duplicate column")) {
       console.error("Error adding pf column:", err);

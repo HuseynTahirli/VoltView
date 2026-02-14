@@ -162,3 +162,113 @@ app.post("/api/login", (req, res) => {
 app.listen(PORT, () => {
   console.log(`🔥 VoltView backend running at http://localhost:${PORT}`);
 });
+
+// ================== ALERTS API ==================
+// Get all alerts
+app.get("/api/alerts", (req, res) => {
+  const includeResolved = req.query.resolved === "true";
+  
+  let query = "SELECT * FROM alerts ORDER BY id DESC";
+  if (!includeResolved) {
+    query = "SELECT * FROM alerts WHERE resolved = 0 ORDER BY id DESC";
+  }
+  
+  db.all(query, [], (err, rows) => {
+    if (err) return res.status(500).json({ error: "DB error" });
+    res.json(rows || []);
+  });
+});
+
+// Create new alert
+app.post("/api/alerts", (req, res) => {
+  const { type, message } = req.body;
+  
+  if (!type || !message) {
+    return res.status(400).json({ error: "type and message are required" });
+  }
+  
+  const timestamp = new Date().toISOString();
+  
+  db.run(
+    "INSERT INTO alerts (type, message, timestamp, resolved) VALUES (?, ?, ?, 0)",
+    [type, message, timestamp],
+    function(err) {
+      if (err) return res.status(500).json({ error: "DB error" });
+      
+      res.json({
+        ok: true,
+        alert: {
+          id: this.lastID,
+          type,
+          message,
+          timestamp,
+          resolved: 0
+        }
+      });
+    }
+  );
+});
+
+// Resolve an alert
+app.put("/api/alerts/:id/resolve", (req, res) => {
+  const alertId = req.params.id;
+  
+  db.run(
+    "UPDATE alerts SET resolved = 1 WHERE id = ?",
+    [alertId],
+    function(err) {
+      if (err) return res.status(500).json({ error: "DB error" });
+      
+      if (this.changes === 0) {
+        return res.status(404).json({ error: "Alert not found" });
+      }
+      
+      res.json({ ok: true, message: "Alert resolved" });
+    }
+  );
+});
+
+// ================== REPORTS API ==================
+// Get all reports
+app.get("/api/reports", (req, res) => {
+  db.all(
+    "SELECT * FROM reports ORDER BY date DESC",
+    [],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: "DB error" });
+      res.json(rows || []);
+    }
+  );
+});
+
+// Create new report
+app.post("/api/reports", (req, res) => {
+  const { date, summary, report_type, status, file_path } = req.body;
+  
+  if (!date || !summary || !report_type) {
+    return res.status(400).json({ error: "date, summary, and report_type are required" });
+  }
+  
+  const created_at = new Date().toISOString();
+  
+  db.run(
+    "INSERT INTO reports (date, summary, report_type, status, file_path, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+    [date, summary, report_type, status || "Generated", file_path || null, created_at],
+    function(err) {
+      if (err) return res.status(500).json({ error: "DB error" });
+      
+      res.json({
+        ok: true,
+        report: {
+          id: this.lastID,
+          date,
+          summary,
+          report_type,
+          status,
+          file_path,
+          created_at
+        }
+      });
+    }
+  );
+});

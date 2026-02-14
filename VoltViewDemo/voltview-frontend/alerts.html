@@ -39,7 +39,7 @@
   <main class="ep-content">
     <section class="ep-alerts-container">
       <div class="ep-alerts-title">Power Event Alerts</div>
-      <div class="ep-alerts-sim-panel" style="margin-bottom:24px;display:flex;align-items:center;gap:13px;">
+      <div class="ep-alerts-sim-panel" style="margin-bottom:24px;display:flex;align-items:center;gap:13px;flex-wrap:wrap;">
         <select id="sim-alert-type" class="ep-input" style="width:140px;font-size:1.1em;font-weight:700;">
           <option value="critical">CRITICAL</option>
           <option value="warning">WARNING</option>
@@ -48,7 +48,7 @@
         <input id="sim-alert-msg" class="ep-input" type="text" placeholder="Type a custom alert message..." style="width:270px;font-size:1.08em;" />
         <button id="sim-alert-btn" class="ep-alert-res-btn-big" style="border-radius:50px;padding:1.13em 2em;text-transform:uppercase;letter-spacing:1px;min-width:150px;">SIMULATE ALERT</button>
       </div>
-      <div id="ep-alerts-info" style="margin-bottom: 1.5em;">Below are the most recent alerts & warnings. Resolve or investigate issues directly.</div>
+      <div id="ep-alerts-info" style="margin-bottom: 1.5em;">Below are the most recent alerts & warnings from the database. Resolve or investigate issues directly.</div>
       <table class="ep-table" style="width:100%;">
         <thead>
           <tr>
@@ -58,64 +58,13 @@
             <th>Action</th>
           </tr>
         </thead>
-        <tbody id="ep-alerts-tbody"></tbody>
+        <tbody id="ep-alerts-tbody">
+          <tr><td colspan="4" style="text-align:center;color:#ffe600;">Loading alerts...</td></tr>
+        </tbody>
       </table>
     </section>
-    <script>
-      const sampleAlerts = [
-        {id:1, type:'critical',   time:'2025-12-10 15:24', msg:'Inverter overheating on Rooftop Array', resolved:false},
-        {id:2, type:'warning',    time:'2025-12-10 14:57', msg:'High THD detected (6.8%)', resolved:false},
-        {id:3, type:'info',       time:'2025-12-10 13:20', msg:'New device connected: Sensor-7B', resolved:false},
-        {id:4, type:'critical',   time:'2025-12-10 12:16', msg:'Breaker 2 tripped in Panel B', resolved:false},
-        {id:5, type:'warning',    time:'2025-12-10 11:42', msg:'Power factor dropped below 0.92', resolved:false}
-      ];
-      function renderType(type) {
-        const TYPE_MAP = {
-          critical: {word: 'CRITICAL', color: '#ff1744', bg: 'rgba(255,23,68,0.14)'},
-          warning: {word: 'WARNING', color: '#ffe600', bg:'rgba(255,230,0,0.14)'},
-          info:    {word: 'INFO', color: '#00fff7', bg:'rgba(0,255,247,0.14)'}
-        };
-        let dat = TYPE_MAP[type] || TYPE_MAP.info;
-        return `<span class="ep-type-bubble" style="background:${dat.bg};color:${dat.color};border:2.5px solid ${dat.color};">${dat.word}</span>`;
-      }
-      function renderAlerts() {
-        const tbody = document.getElementById('ep-alerts-tbody');
-        tbody.innerHTML = '';
-        sampleAlerts.forEach(alert => {
-          if (alert.resolved) return;
-          const tr = document.createElement('tr');
-          tr.className = `ep-alert-row ep-alert-${alert.type}`;
-          tr.innerHTML = `
-            <td style="text-align:center;vertical-align:middle;">${renderType(alert.type)}</td>
-            <td>${alert.time}</td>
-            <td>${alert.msg}</td>
-            <td><button class='ep-alert-res-btn-big'>RESOLVE</button></td>
-          `;
-          tr.querySelector('.ep-alert-res-btn-big').onclick = ()=>{
-            alert.resolved = true;
-            tr.classList.add('resolved');
-            setTimeout(renderAlerts,600);
-          };
-          tbody.appendChild(tr);
-        });
-        if(tbody.innerHTML==='')
-          tbody.innerHTML = '<tr><td colspan="4" style="color:#44ffaa;font-weight:bold;text-align:center;font-size:1.2em;">No active alerts!\u2728</td></tr>';
-      }
-      renderAlerts();
-      // --- Simulate alert add panel ---- //
-      document.getElementById('sim-alert-btn').onclick = function() {
-        const type = document.getElementById('sim-alert-type').value;
-        const msg = document.getElementById('sim-alert-msg').value.trim();
-        if(!msg) { alert('Enter a description for the alert.'); return; }
-        const now = new Date();
-        const timestr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '
-                    + String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-        sampleAlerts.unshift({id: Date.now(), type, msg, time: timestr, resolved:false});
-        renderAlerts();
-        document.getElementById('sim-alert-msg').value = '';
-      }
-    </script>
   </main>
   <script src="script.js" defer></script>
+  <script src="alerts-api.js" defer></script>
 </body>
 </html>
