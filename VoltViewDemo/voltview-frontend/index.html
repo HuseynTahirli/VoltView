@@ -1,13 +1,208 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>voltview-frontend</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VoltView Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=2" />
+  <link rel="stylesheet" href="responsive-fixes.css?v=2" />
+  <link rel="stylesheet" href="center-fix.css?v=2" />
+  <link rel="stylesheet" href="layout-overrides.css?v=2" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="script.js" defer></script>
+</head>
+
+<body>
+  <canvas id="cyber-bg" class="cyber-bg-canvas"></canvas>
+  <header class="ep-topnav">
+    <a href="index.html" class="ep-logo-link">
+      <span class="ep-logo-svg">
+        <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+          <polyline points="13,29 22,15 17,15 26,3 23,17 28,17 18,35" stroke="#00fff7" stroke-width="3.4" fill="none"
+            stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </span>
+      <span class="ep-logo-text">VoltView</span>
+    </a>
+    <nav class="ep-navlinks">
+      <a href="index.html" class="ep-navbtn active">Dashboard</a>
+      <a href="analytics.html" class="ep-navbtn">Analytics</a>
+      <a href="devices.html" class="ep-navbtn">Devices</a>
+      <a href="reports.html" class="ep-navbtn">Reports</a>
+      <a href="alerts.html" class="ep-navbtn">Alerts</a>
+      <a href="settings.html" class="ep-navbtn">Settings</a>
+      <a href="help.html" class="ep-navbtn">Help</a>
+    </nav>
+  </header>
+  <div class="ep-dashboard-searchbar">
+    <input type="text" id="ep-quicksearch" placeholder="🔎 Search dashboard functions..." autocomplete="off" />
+    <div id="ep-quicksearch-results" class="ep-search-results"></div>
+  </div>
+  <main class="ep-content">
+    <div id="ep-live-alert"></div>
+    <div id="ep-activity-feed"></div>
+    <!-- DASHBOARD WRAPPER FOR STRUCTURED LAYOUT -->
+    <div class="ep-dashboard-struct">
+      <!-- LIVE VOLTAGE WAVEFORM (centered, 65% width) -->
+      <div class="ep-row ep-row-waveform">
+        <div class="live-waveform-card">
+          <div class="live-waveform-title">Live Voltage Waveform</div>
+          <div class="live-waveform-graph-bg">
+            <canvas id="liveVoltageChart" class="live-waveform-canvas" style="display: none;"></canvas>
+            <canvas id="liveWaveChart" class="live-wave-glow-canvas"></canvas>
+          </div>
+          <div class="live-waveform-btn-row">
+            <button class="live-waveform-btn" id="goto-analytics">VIEW ANALYTICS</button>
+            <button class="live-waveform-btn" id="goto-graphs">ALL GRAPHS</button>
+          </div>
+        </div>
+      </div>
+      <!-- METRIC TILES ROW -->
+      <div class="ep-row ep-row-tiles">
+        <div class="ep-dashboard-tile ep-counter ep-usage-neon">
+          <div class="ep-usage-neon-bar"></div>
+          <div class="ep-counter-icon" style="margin-bottom:3px;">
+            <svg width="23" height="23" fill="#fad600" viewBox="0 0 22 22">
+              <path d="M12.7 2L8.3 10H12l-2.3 8L15 9.5h-3L12.7 2z" />
+            </svg>
+          </div>
+          <div class="ep-counter-label">Today’s Usage</div>
+          <div id="tile-usage" class="ep-counter-value ep-stat-glow">0.00 kWh</div>
+          <div class="ep-live-bar" id="tile-usage-bar"></div>
+          <div class="ep-counter-progress-bar-bg">
+            <div id="energy-progress-bar" class="ep-counter-progress-bar-fill" style="width: 45%"></div>
+          </div>
+        </div>
+        <div class="ep-dashboard-tile ep-counter ep-peak-neon">
+          <div class="ep-peak-neon-bar"></div>
+          <div class="ep-counter-icon" style="margin-bottom:3px;">
+            <svg width="23" height="23" fill="#87fff7" viewBox="0 0 22 22">
+              <path d="M10 15c0 1.5 1 5 1 5s5-7 5-10A5 5 0 0 0 6 8c0 3 5 10 5 10s1-3.5 1-5a2 2 0 1 0-4 0z" />
+            </svg>
+          </div>
+          <div class="ep-counter-label">Peak Power</div>
+          <div id="tile-peak" class="ep-counter-value ep-stat-glow">0 W</div>
+          <div class="ep-live-bar" id="tile-peak-bar"></div>
+        </div>
+        <div class="ep-dashboard-tile ep-counter ep-avgvolt-neon">
+          <div class="ep-avgvolt-neon-bar"></div>
+          <div class="ep-counter-icon" style="margin-bottom:3px;">
+            <svg width="23" height="23" fill="#af97ff" viewBox="0 0 22 22">
+              <circle cx="11" cy="11" r="10" stroke="#4d41ff" stroke-width="2" fill="none" />
+              <path d="M11 6.5V15.5" stroke="#d9c6ff" stroke-width="2" />
+              <circle cx="11" cy="11" r="2" fill="#dfcdff" />
+            </svg>
+          </div>
+          <div class="ep-counter-label">Avg Voltage</div>
+          <div id="tile-avgvolt" class="ep-counter-value ep-stat-glow">0 V</div>
+          <div class="ep-live-bar" id="tile-avgvolt-bar"></div>
+        </div>
+        <div class="ep-dashboard-tile ep-counter ep-load-neon">
+          <div class="ep-load-neon-bar"></div>
+          <div class="ep-counter-icon" style="margin-bottom:3px;">
+            <svg width="23" height="23" fill="#fff" viewBox="0 0 22 22">
+              <circle cx="11" cy="11" r="10" stroke="#7affe8" stroke-width="2" fill="none" />
+              <path d="M11 11L16 7" stroke="#6affb7" stroke-width="2" />
+              <circle cx="11" cy="11" r="1.5" fill="#00ffb5" />
+            </svg>
+          </div>
+          <div class="ep-counter-label">Load Score</div>
+          <div id="tile-load" class="ep-counter-value ep-stat-glow">0</div>
+          <div class="ep-live-bar" id="tile-load-bar"></div>
+        </div>
+      </div>
+      <!-- TWO PANEL ROW -->
+      <div class="ep-row ep-row-panels">
+        <div class="ep-dashboard-panel ep-panel ep-livepower ep-livepower-neon">
+          <div class="ep-livepower-neon-bar"></div>
+          <div class="ep-panel-header">
+            <span class="ep-panel-title">Live Power</span>
+            <span class="ep-live-dot"></span>
+          </div>
+          <div class="ep-panel-body">
+            <div class="ep-panel-label">Power:<span class="ep-panel-value">1.78 <span class="ep-unit">kW</span></span>
+            </div>
+            <div class="ep-panel-label">Voltage:<span class="ep-panel-value">235.01 <span
+                  class="ep-unit">V</span></span></div>
+            <div class="ep-panel-label">Current:<span class="ep-panel-value">7.11 <span class="ep-unit">A</span></span>
+            </div>
+          </div>
+        </div>
+        <div class="ep-dashboard-panel ep-panel ep-health ep-health-neon">
+          <div class="ep-health-neon-bar"></div>
+          <div class="ep-panel-header">
+            <span class="ep-panel-title">Device Health</span>
+            <span class="ep-live-dot"></span>
+          </div>
+          <div class="ep-panel-body">
+            <div class="ep-panel-label">Status <span class="ep-panel-value">Online</span></div>
+            <div class="ep-panel-label">Firmware <span class="ep-panel-value">v2.14</span></div>
+            <div class="ep-panel-label">Packet Loss: <span class="ep-panel-value">0.02%</span></div>
+          </div>
+        </div>
+      </div>
+      <!-- RECENT READINGS TABLE -->
+      <div class="ep-row ep-row-table">
+        <div class="ep-alerts-container">
+          <div class="ep-alerts-title">Live Readings</div>
+          <table class="ep-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Voltage (V)</th>
+                <th>Current (A)</th>
+                <th>Power (kW)</th>
+              </tr>
+            </thead>
+            <tbody id="ep-readings-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <section class="ep-graphs-grid"
+      style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1.5rem; margin:2rem 0; max-width: 100%;">
+      <div class="ep-glow-card graph-card">
+        <div class="ep-card-title">Live Power Trend</div>
+        <div class="live-metric-chart-container"><canvas id="chart-power"></canvas></div>
+      </div>
+      <div class="ep-glow-card graph-card">
+        <div class="ep-card-title">Live Voltage Trend</div>
+        <div class="live-metric-chart-container"><canvas id="chart-voltage"></canvas></div>
+      </div>
+      <div class="ep-glow-card graph-card">
+        <div class="ep-card-title">Live Current Trend</div>
+        <div class="live-metric-chart-container"><canvas id="chart-current"></canvas></div>
+      </div>
+      <div class="ep-glow-card graph-card">
+        <div class="ep-card-title">Load Score Trend</div>
+        <div class="live-metric-chart-container"><canvas id="chart-loadscore"></canvas></div>
+      </div>
+      <div class="ep-glow-card graph-card">
+        <div class="ep-card-title">Efficiency Trend</div>
+        <div class="live-metric-chart-container"><canvas id="chart-efficiency"></canvas></div>
+      </div>
+      <div class="ep-glow-card graph-card">
+        <div class="ep-card-title">Sensor Jitter</div>
+        <div class="live-metric-chart-container"><canvas id="chart-jitter"></canvas></div>
+      </div>
+      <div class="ep-glow-card graph-card">
+        <div class="ep-card-title">Packet Integrity</div>
+        <div class="live-metric-chart-container"><canvas id="chart-packet"></canvas></div>
+      </div>
+      <div class="ep-glow-card graph-card">
+        <div class="ep-card-title">Temperature</div>
+        <div class="live-metric-chart-container"><canvas id="chart-temp"></canvas></div>
+      </div>
+      <div class="ep-glow-card graph-card">
+        <div class="ep-card-title">Frequency</div>
+        <div class="live-metric-chart-container"><canvas id="chart-freq"></canvas></div>
+      </div>
+    </section>
+    <footer class="ep-footer">VoltView Dashboard &copy; 2025</footer>
+  </main>
+</body>
+
 </html>

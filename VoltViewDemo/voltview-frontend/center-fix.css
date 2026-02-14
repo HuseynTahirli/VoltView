@@ -1,0 +1,41 @@
+/* CRITICAL FIX: Remove all problematic left margins causing right-side shift */
+
+body {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.ep-content,
+.ep-dashboard-struct,
+.ep-row,
+.ep-row-waveform,
+.ep-row-tiles,
+.ep-row-panels,
+.ep-row-table {
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* Override any residual dashboard panel child margins */
+.dashPanel>* {
+    margin-left: 0 !important;
+}
+
+/* Ensure perfect centering for all major sections */
+.ep-graphs-grid {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+.ep-alerts-container {
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* Force central alignment for panels */
+.ep-livepower,
+.ep-health {
+    margin-left: 0 !important;
+}

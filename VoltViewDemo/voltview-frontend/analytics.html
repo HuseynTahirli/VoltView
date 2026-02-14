@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VoltView Analytics</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <canvas id="cyber-bg" class="cyber-bg-canvas"></canvas>
+  <header class="ep-topnav">
+    <a href="index.html" class="ep-logo-link">
+      <span class="ep-logo-svg">
+        <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+          <polyline points="13,29 22,15 17,15 26,3 23,17 28,17 18,35" stroke="#00fff7" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="ep-logo-text">VoltView</span>
+    </a>
+    <nav class="ep-navlinks">
+      <a href="index.html" class="ep-navbtn">Dashboard</a>
+      <a href="analytics.html" class="ep-navbtn active">Analytics</a>
+      <a href="devices.html" class="ep-navbtn">Devices</a>
+      <a href="live-readings.html" class="ep-navbtn">Live Readings</a>
+      <a href="reports.html" class="ep-navbtn">Reports</a>
+      <a href="alerts.html" class="ep-navbtn">Alerts</a>
+      <a href="settings.html" class="ep-navbtn">Settings</a>
+      <a href="help.html" class="ep-navbtn">Help</a>
+    </nav>
+  </header>
+  <div class="ep-dashboard-searchbar">
+    <input type="text" id="ep-quicksearch" placeholder="🔎 Search dashboard functions..." autocomplete="off"/>
+    <div id="ep-quicksearch-results" class="ep-search-results"></div>
+  </div>
+  <main class="ep-content">
+    <div class="ep-analytics-container">
+      <!-- METRICS NEON GROUPED CARD -->
+      <div class="ep-analytics-metrics-card">
+        <div class="ep-analytics-metrics-grid">
+          <div class="ep-analytics-metric"><div class="ep-analytics-metric-label">Power</div><div class="ep-analytics-metric-value" id="main-power">0 kW</div></div>
+          <div class="ep-analytics-metric"><div class="ep-analytics-metric-label">Voltage</div><div class="ep-analytics-metric-value" id="main-voltage">0 V</div></div>
+          <div class="ep-analytics-metric"><div class="ep-analytics-metric-label">Current</div><div class="ep-analytics-metric-value" id="main-current">0 A</div></div>
+          <div class="ep-analytics-metric"><div class="ep-analytics-metric-label">Today's Energy</div><div class="ep-analytics-metric-value" id="tile-usage">0 kWh</div></div>
+          <div class="ep-analytics-metric"><div class="ep-analytics-metric-label">Peak Power</div><div class="ep-analytics-metric-value" id="tile-peak">0 kW</div></div>
+          <div class="ep-analytics-metric"><div class="ep-analytics-metric-label">Avg Voltage</div><div class="ep-analytics-metric-value" id="tile-avgvolt">0 V</div></div>
+        </div>
+      </div>
+      <!-- Centered Two-Column Grid of Chart Cards -->
+      <section class="ep-analytics-grid">
+        <div class="ep-analytics-card"><div class="ep-card-title">Power Over Time <button onclick="exportChartToPNG('main-power-chart')">Export</button></div><div class="ep-graph-fixed"><canvas id="main-power-chart" height="175"></canvas></div></div>
+        <div class="ep-analytics-card"><div class="ep-card-title">Voltage Waveform <button onclick="exportChartToPNG('waveform-chart')">Export</button></div><div class="ep-graph-fixed"><canvas id="waveform-chart" height="175"></canvas></div></div>
+        <div class="ep-analytics-card"><div class="ep-card-title">Device Contribution <button onclick="exportChartToPNG('device-chart')">Export</button></div><div class="ep-graph-fixed"><canvas id="device-chart" height="175"></canvas></div></div>
+        <div class="ep-analytics-card"><div class="ep-card-title">Hourly Usage <button onclick="exportChartToPNG('hourly-chart')">Export</button></div><div class="ep-graph-fixed"><canvas id="hourly-chart" height="175"></canvas></div></div>
+        <div class="ep-analytics-card"><div class="ep-card-title">Min/Max Voltage <button onclick="exportChartToPNG('minmax-voltage-chart')">Export</button></div><div class="ep-graph-fixed"><canvas id="minmax-voltage-chart" height="175"></canvas></div></div>
+        <div class="ep-analytics-card"><div class="ep-card-title">Power Factor <button onclick="exportChartToPNG('pf-chart')">Export</button></div><div class="ep-graph-fixed"><canvas id="pf-chart" height="175"></canvas></div></div>
+      </section>
+      <footer class="ep-footer">VoltView Analytics &copy; 2025</footer>
+      <!-- HOLOGRAM NODE 3D WIDGET -->
+      <div id="hologram-node-widget" class="hologram-widget-3d">
+        <div class="holo-cube" id="holo-cube">
+          <div class="holo-face front"></div>
+          <div class="holo-face back"></div>
+          <div class="holo-face right"></div>
+          <div class="holo-face left"></div>
+          <div class="holo-face top"></div>
+          <div class="holo-face bottom"></div>
+          <div class="holo-lines"></div>
+          <div class="holo-node sensor" data-node="sensor">Sensor</div>
+          <div class="holo-node gateway" data-node="gateway">Gateway</div>
+          <div class="holo-node dashboard" data-node="dashboard">Dashboard</div>
+          <div class="holo-animated-dot"></div>
+        </div>
+        <div class="holo-label shadow">Hologram Node</div>
+      </div>
+      <!-- Modal dialogs for each node -->
+      <div class="holo-modal" id="holo-modal-sensor">
+        <div class="holo-modal-content">
+          <div class="holo-modal-title">Sensor Actions</div>
+          <button class="holo-modal-btn">Reconnect</button>
+          <button class="holo-modal-btn">Calibrate</button>
+          <button class="holo-modal-btn">View Logs</button>
+          <button class="holo-modal-btn">Test Alert</button>
+          <button class="holo-modal-btn holo-modal-close">Close</button>
+        </div>
+      </div>
+      <div class="holo-modal" id="holo-modal-gateway">
+        <div class="holo-modal-content">
+          <div class="holo-modal-title">Gateway Actions</div>
+          <button class="holo-modal-btn">Reconnect</button>
+          <button class="holo-modal-btn">Calibrate</button>
+          <button class="holo-modal-btn">View Logs</button>
+          <button class="holo-modal-btn">Test Alert</button>
+          <button class="holo-modal-btn holo-modal-close">Close</button>
+        </div>
+      </div>
+      <div class="holo-modal" id="holo-modal-dashboard">
+        <div class="holo-modal-content">
+          <div class="holo-modal-title">Dashboard Actions</div>
+          <button class="holo-modal-btn">Reconnect</button>
+          <button class="holo-modal-btn">Calibrate</button>
+          <button class="holo-modal-btn">View Logs</button>
+          <button class="holo-modal-btn">Test Alert</button>
+          <button class="holo-modal-btn holo-modal-close">Close</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VoltView Readings</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <header class="ep-topnav">
+    <a href="index.html" class="ep-logo-link">
+      <span class="ep-logo-svg">
+        <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+          <polyline points="13,29 22,15 17,15 26,3 23,17 28,17 18,35" stroke="#00fff7" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="ep-logo-text">VoltView</span>
+    </a>
+    <nav class="ep-navlinks">
+      <a href="index.html" class="ep-navbtn">Dashboard</a>
+      <a href="analytics.html" class="ep-navbtn">Analytics</a>
+      <a href="devices.html" class="ep-navbtn">Devices</a>
+      <a href="readings.html" class="ep-navbtn active">Readings</a>
+      <a href="live-readings.html" class="ep-navbtn">Live Readings</a>
+      <a href="reports.html" class="ep-navbtn">Reports</a>
+      <a href="alerts.html" class="ep-navbtn">Alerts</a>
+      <a href="settings.html" class="ep-navbtn">Settings</a>
+      <a href="help.html" class="ep-navbtn">Help</a>
+    </nav>
+  </header>
+  <div class="ep-dashboard-searchbar">
+    <input type="text" id="ep-quicksearch" placeholder="🔎 Search dashboard functions..." autocomplete="off"/>
+    <div id="ep-quicksearch-results" class="ep-search-results"></div>
+  </div>
+  <main class="ep-content">
+    <div class="ep-card readings-table">
+      <h2>Historical Readings</h2>
+      <table class="ep-table">
+        <thead>
+          <tr><th>Date</th><th>Time</th><th>Voltage (V)</th><th>Current (A)</th><th>Power (kW)</th></tr>
+        </thead>
+        <tbody id="historical-readings-tbody">
+          <!-- Data from JS/backend here -->
+        </tbody>
+      </table>
+    </div>
+  </main>
+</body>
+</html>

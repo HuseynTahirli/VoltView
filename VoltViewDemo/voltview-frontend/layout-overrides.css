@@ -1,0 +1,101 @@
+/* DEFINITIVE LAYOUT OVERRIDES */
+/* This file is loaded last to ensure it overrides all other styles */
+
+/* 1. Fix Root Layout */
+html,
+body {
+    width: 100% !important;
+    /* using 100vw causes scrollbar shifts */
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* 2. Reset Main Content Container */
+.ep-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 58px auto 0 auto !important;
+    /* Top margin for nav, auto for sides */
+    padding: 20px !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    /* Flex center alignment is more robust */
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+}
+
+/* 3. Reset Dashboard Structure */
+.ep-dashboard-struct {
+    width: 100% !important;
+    max-width: 1400px !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+}
+
+/* 4. Force Row Centering */
+.ep-row,
+.ep-row-waveform,
+.ep-row-tiles,
+.ep-row-panels,
+.ep-row-table {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    display: flex !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+}
+
+/* 5. Fix Individual Card Containers to be contained */
+.live-waveform-card {
+    margin: 0 auto !important;
+    width: 95% !important;
+    max-width: 800px !important;
+}
+
+.ep-row-tiles {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+    justify-content: center !important;
+    gap: 20px !important;
+    width: 100% !important;
+    max-width: 800px !important;
+}
+
+/* 6. Fix Graphs Grid */
+.ep-graphs-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+    gap: 20px !important;
+    width: 100% !important;
+    max-width: 1400px !important;
+    margin: 30px auto !important;
+    justify-content: center !important;
+}
+
+/* 7. Nuclear Option for DashPanel */
+.dashPanel,
+.dashPanel>* {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    /* Be careful with padding, but margin must be 0 */
+}
+
+/* 8. Fix Search Bar */
+.ep-dashboard-searchbar {
+    width: 90% !important;
+    max-width: 600px !important;
+    margin: 20px auto !important;
+}

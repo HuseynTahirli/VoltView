@@ -1,0 +1,132 @@
+/* === RESPONSIVE LAYOUT FIXES === */
+
+/* Ensure graphs cards don't overflow */
+.ep-glow-card.graph-card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 1.2rem;
+    margin: 0;
+}
+
+.live-metric-chart-container {
+    width: 100%;
+    max-width: 100%;
+    height: 220px;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.live-metric-chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100%;
+}
+
+/* Ensure waveform card is responsive */
+.live-waveform-card {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    box-sizing: border-box;
+    padding: 1.5rem;
+}
+
+.live-waveform-graph-bg {
+    width: 100%;
+    max-width: 100%;
+    height: 200px;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.live-wave-glow-canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Fix panel overflow */
+.ep-row-panels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 100%;
+    justify-content: center;
+}
+
+.ep-dashboard-panel {
+    flex: 1 1 300px;
+    max-width: 500px;
+    min-width: 280px;
+    box-sizing: border-box;
+    padding: 1.2rem;
+}
+
+@media (max-width: 900px) {
+    .ep-row-panels {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ep-dashboard-panel {
+        max-width: 100%;
+        flex: 1 1 auto;
+    }
+}
+
+/* Fix table overflow */
+.ep-table {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    display: block;
+    box-sizing: border-box;
+}
+
+.ep-table thead,
+.ep-table tbody,
+.ep-table tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+@media (max-width: 700px) {
+    .ep-table {
+        font-size: 0.85rem;
+    }
+
+    .ep-table th,
+    .ep-table td {
+        padding: 0.5rem 0.3rem;
+    }
+}
+
+/* Fix dashboard tiles on mobile */
+@media (max-width: 500px) {
+    .ep-row-tiles {
+        grid-template-columns: 1fr;
+    }
+
+    .ep-dashboard-tile {
+        min-width: 0;
+        width: 100%;
+    }
+}
+
+/* Ensure search bar doesn't overflow */
+.ep-dashboard-searchbar {
+    width: 100%;
+    max-width: 600px;
+    margin: 1rem auto;
+    padding: 0 1rem;
+    box-sizing: border-box;
+}
+
+.ep-dashboard-searchbar input {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
