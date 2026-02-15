@@ -12,7 +12,7 @@ const char* password = "123456789";
 
 // ======== SERVER URL ========
 // NOTE: Update this IP address if your computer's IP changes
-String serverURL = "http://172.20.10.9:4000/api/esp32";
+String serverURL = "http://172.20.10.2:4000/api/esp32";
 
 // ======== READING INTERVAL ========
 const int readingInterval = 5000; // 5 seconds between readings

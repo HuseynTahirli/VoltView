@@ -158,21 +158,17 @@ app.post("/api/login", (req, res) => {
   );
 });
 
-// ================== START SERVER ==================
-app.listen(PORT, () => {
-  console.log(`🔥 VoltView backend running at http://localhost:${PORT}`);
-});
 
 // ================== ALERTS API ==================
 // Get all alerts
 app.get("/api/alerts", (req, res) => {
   const includeResolved = req.query.resolved === "true";
-  
+
   let query = "SELECT * FROM alerts ORDER BY id DESC";
   if (!includeResolved) {
     query = "SELECT * FROM alerts WHERE resolved = 0 ORDER BY id DESC";
   }
-  
+
   db.all(query, [], (err, rows) => {
     if (err) return res.status(500).json({ error: "DB error" });
     res.json(rows || []);
@@ -182,19 +178,19 @@ app.get("/api/alerts", (req, res) => {
 // Create new alert
 app.post("/api/alerts", (req, res) => {
   const { type, message } = req.body;
-  
+
   if (!type || !message) {
     return res.status(400).json({ error: "type and message are required" });
   }
-  
+
   const timestamp = new Date().toISOString();
-  
+
   db.run(
     "INSERT INTO alerts (type, message, timestamp, resolved) VALUES (?, ?, ?, 0)",
     [type, message, timestamp],
-    function(err) {
+    function (err) {
       if (err) return res.status(500).json({ error: "DB error" });
-      
+
       res.json({
         ok: true,
         alert: {
@@ -212,17 +208,17 @@ app.post("/api/alerts", (req, res) => {
 // Resolve an alert
 app.put("/api/alerts/:id/resolve", (req, res) => {
   const alertId = req.params.id;
-  
+
   db.run(
     "UPDATE alerts SET resolved = 1 WHERE id = ?",
     [alertId],
-    function(err) {
+    function (err) {
       if (err) return res.status(500).json({ error: "DB error" });
-      
+
       if (this.changes === 0) {
         return res.status(404).json({ error: "Alert not found" });
       }
-      
+
       res.json({ ok: true, message: "Alert resolved" });
     }
   );
@@ -244,19 +240,19 @@ app.get("/api/reports", (req, res) => {
 // Create new report
 app.post("/api/reports", (req, res) => {
   const { date, summary, report_type, status, file_path } = req.body;
-  
+
   if (!date || !summary || !report_type) {
     return res.status(400).json({ error: "date, summary, and report_type are required" });
   }
-  
+
   const created_at = new Date().toISOString();
-  
+
   db.run(
     "INSERT INTO reports (date, summary, report_type, status, file_path, created_at) VALUES (?, ?, ?, ?, ?, ?)",
     [date, summary, report_type, status || "Generated", file_path || null, created_at],
-    function(err) {
+    function (err) {
       if (err) return res.status(500).json({ error: "DB error" });
-      
+
       res.json({
         ok: true,
         report: {
@@ -271,4 +267,96 @@ app.post("/api/reports", (req, res) => {
       });
     }
   );
+});
+// ================== CSV REPORT GENERATION ==================
+const fs = require('fs');
+const path = require('path');
+
+// Ensure reports directory exists
+const reportsDir = path.join(__dirname, 'reports');
+if (!fs.existsSync(reportsDir)) {
+  fs.mkdirSync(reportsDir);
+}
+
+// Serve reports directory
+app.use('/reports', express.static(reportsDir));
+
+app.post("/api/reports/generate", (req, res) => {
+  const timestamp = new Date().toISOString();
+  const dateStr = timestamp.slice(0, 10);
+  const filename = `report-${Date.now()}.csv`;
+  const filePath = path.join(reportsDir, filename);
+  const publicPath = `/reports/${filename}`;
+
+  // Fetch all readings for the report
+  db.all("SELECT * FROM readings ORDER BY timestamp DESC LIMIT 1000", [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: "DB error fetch readings" });
+    }
+
+    if (!rows || rows.length === 0) {
+      return res.status(400).json({ error: "No data available to generate report" });
+    }
+
+    // Calculate Summary Stats
+    let totalPower = 0;
+    let totalVoltage = 0;
+    let maxPower = 0;
+    const count = rows.length;
+
+    rows.forEach(r => {
+      totalPower += (r.power || 0);
+      totalVoltage += (r.voltage || 0);
+      if ((r.power || 0) > maxPower) maxPower = r.power;
+    });
+
+    const avgPower = (totalPower / count).toFixed(2);
+    const avgVoltage = (totalVoltage / count).toFixed(2);
+
+    // Create CSV Content
+    let csvContent = `Report Generated: ${timestamp}\n`;
+    csvContent += `Summary: ${count} Readings analyzed. Avg Power: ${avgPower}W, Peak Power: ${maxPower}W, Avg Voltage: ${avgVoltage}V\n\n`;
+    csvContent += `Timestamp,Voltage (V),Current (A),Power (W),Energy (kWh),Frequency (Hz),PF\n`;
+
+    rows.forEach(r => {
+      csvContent += `${r.timestamp},${r.voltage},${r.current},${r.power},${r.energy || 0},${r.frequency || 0},${r.pf || 0}\n`;
+    });
+
+    // Write to file
+    fs.writeFile(filePath, csvContent, (err) => {
+      if (err) {
+        console.error("Error writing report:", err);
+        return res.status(500).json({ error: "File write error" });
+      }
+
+      // Save to Database
+      const summary = `Avg Pwr: ${avgPower}W | Peak: ${maxPower}W | ${count} records`;
+
+      db.run(
+        "INSERT INTO reports (date, summary, report_type, status, file_path, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+        [dateStr, summary, "System CSV", "Completed", publicPath, timestamp],
+        function (err) {
+          if (err) return res.status(500).json({ error: "DB Insert error" });
+
+          res.json({
+            ok: true,
+            message: "Report generated successfully",
+            report: {
+              id: this.lastID,
+              date: dateStr,
+              summary,
+              report_type: "System CSV",
+              status: "Completed",
+              file_path: publicPath
+            }
+          });
+        }
+      );
+    });
+  });
+});
+
+// ================== START SERVER ==================
+app.listen(PORT, () => {
+  console.log(`🔥 VoltView backend running at http://localhost:${PORT}`);
 });

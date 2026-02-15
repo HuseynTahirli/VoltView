@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,12 +13,14 @@
   <link rel="stylesheet" href="ui-improvements.css?v=2" />
   <script src="script.js" defer></script>
 </head>
+
 <body>
   <header class="ep-topnav">
     <a href="index.html" class="ep-logo-link">
       <span class="ep-logo-svg">
         <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
-          <polyline points="13,29 22,15 17,15 26,3 23,17 28,17 18,35" stroke="#00fff7" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="13,29 22,15 17,15 26,3 23,17 28,17 18,35" stroke="#00fff7" stroke-width="3.4" fill="none"
+            stroke-linecap="round" stroke-linejoin="round" />
         </svg>
       </span>
       <span class="ep-logo-text">VoltView</span>
@@ -34,19 +37,32 @@
     </nav>
   </header>
   <div class="ep-dashboard-searchbar">
-    <input type="text" id="ep-quicksearch" placeholder="🔎 Search dashboard functions..." autocomplete="off"/>
+    <input type="text" id="ep-quicksearch" placeholder="🔎 Search dashboard functions..." autocomplete="off" />
     <div id="ep-quicksearch-results" class="ep-search-results"></div>
   </div>
   <main class="ep-content">
     <div class="ep-card" id="ep-reports-card">
-      <h2>Reports</h2>
+      <div
+        style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;width:90%;margin-left:auto;margin-right:auto;">
+        <h2>Reports</h2>
+        <button id="btn-generate-report" class="ep-alert-res-btn-big"
+          style="margin:0;font-size:0.9em;padding:0.8em 1.5em;">Generate Report</button>
+      </div>
       <div class="ep-report-table-outer">
-        <table class="ep-table" id="ep-report-table">
+        <table class="ep-table fixed-table" id="ep-report-table">
           <thead>
-            <tr><th>Date</th><th>Download</th><th>Summary</th><th>Type</th><th>Status</th></tr>
+            <tr>
+              <th class="col-date">Date</th>
+              <th class="col-download">Download</th>
+              <th class="col-summary">Summary</th>
+              <th class="col-type">Type</th>
+              <th class="col-status">Status</th>
+            </tr>
           </thead>
           <tbody id="reports-tbody">
-            <tr><td colspan="5" style="text-align:center;color:#ffe600;">Loading reports...</td></tr>
+            <tr>
+              <td colspan="5" style="text-align:center;color:#ffe600;">Loading reports...</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -54,4 +70,5 @@
   </main>
   <script src="reports-api.js" defer></script>
 </body>
+
 </html>

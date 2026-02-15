@@ -73,7 +73,44 @@ function updateDashboard(reading) {
           <td>${((r.power || 0) / 1000).toFixed(3)}</td>
         </tr>
       `;
+
     }).join('');
+  }
+
+  // Update Live Readings Page Table (if present)
+  const liveTableBody = document.getElementById('live-readings-tbody');
+  if (liveTableBody) {
+    liveTableBody.innerHTML = recentReadings.map(r => {
+      const time = new Date(r.timestamp).toLocaleTimeString();
+      return `
+        <tr>
+          <td>${time}</td>
+          <td>${(r.voltage || 0).toFixed(2)}</td>
+          <td>${(r.current || 0).toFixed(2)}</td>
+          <td>${((r.power || 0) / 1000).toFixed(3)}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // Update Device Health Panel
+  const statusEl = document.getElementById('device-status');
+  const frequencyEl = document.getElementById('device-frequency');
+  const pfEl = document.getElementById('device-pf');
+
+  if (statusEl) {
+    statusEl.textContent = 'Online';
+    statusEl.style.color = '#00fba8';
+  }
+  if (frequencyEl) frequencyEl.textContent = (reading.frequency || 0).toFixed(2);
+  if (pfEl) pfEl.textContent = (reading.pf || 0).toFixed(2);
+
+  // Update Load Score Tile
+  const tileLoad = document.getElementById('tile-load');
+  if (tileLoad) {
+    const maxPower = 3000;
+    const score = Math.min(100, Math.round(((reading.power || 0) / maxPower) * 100));
+    tileLoad.textContent = score;
   }
 }
 
@@ -93,6 +130,11 @@ function updateCharts() {
   // Update frequency chart if data available
   if (historyData[0]?.frequency !== undefined) {
     updateSingleChart('chart-freq', historyData.map(r => r.frequency || 0));
+  }
+
+  // Update Efficiency/PF chart
+  if (historyData[0]?.pf !== undefined) {
+    updateSingleChart('chart-efficiency', historyData.map(r => (r.pf || 0) * 100));
   }
 }
 
@@ -214,6 +256,7 @@ document.addEventListener('DOMContentLoaded', function () {
           cubicInterpolationMode: 'monotone',
           tension: 0.42,
           fill: false,
+
         }]
       },
       options: {
@@ -352,36 +395,36 @@ document.addEventListener('DOMContentLoaded', function () {
 document.addEventListener('DOMContentLoaded', function () {
   const themeSelect = document.querySelector('.ep-select');
   const saveBtn = document.querySelector('.ep-btn-save');
-  
+
   // Load saved theme from localStorage
   const savedTheme = localStorage.getItem('voltview-theme') || 'Cyberpunk';
-  
+
   if (themeSelect) {
     // Set the dropdown to saved theme
     themeSelect.value = savedTheme;
-    
+
     // Apply theme on load
     applyTheme(savedTheme);
-    
+
     // Listen for theme changes
-    themeSelect.addEventListener('change', function() {
+    themeSelect.addEventListener('change', function () {
       const selectedTheme = this.value;
       applyTheme(selectedTheme);
     });
   }
-  
+
   // Save settings button
   if (saveBtn) {
-    saveBtn.addEventListener('click', function() {
+    saveBtn.addEventListener('click', function () {
       if (themeSelect) {
         const selectedTheme = themeSelect.value;
         localStorage.setItem('voltview-theme', selectedTheme);
-        
+
         // Show success message
         const originalText = this.textContent;
         this.textContent = 'Settings Saved!';
         this.style.background = 'linear-gradient(93deg, #00fba8 0%, #05eafd 100%)';
-        
+
         setTimeout(() => {
           this.textContent = originalText;
           this.style.background = '';
@@ -389,11 +432,11 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   }
-  
+
   function applyTheme(theme) {
     const root = document.documentElement;
-    
-    switch(theme) {
+
+    switch (theme) {
       case 'Classic':
         // Classic theme - lighter, more professional
         root.style.setProperty('--cp-bg-dark', '#1a1a2e');
@@ -406,7 +449,7 @@ document.addEventListener('DOMContentLoaded', function () {
         root.style.setProperty('--cp-neon-green', '#55efc4');
         document.body.style.background = '#16213e';
         break;
-        
+
       case 'Dark':
         // Dark theme - minimal glow, high contrast
         root.style.setProperty('--cp-bg-dark', '#0a0a0a');
@@ -419,7 +462,7 @@ document.addEventListener('DOMContentLoaded', function () {
         root.style.setProperty('--cp-neon-green', '#2ecc71');
         document.body.style.background = '#0a0a0a';
         break;
-        
+
       case 'Cyberpunk':
       default:
         // Cyberpunk theme - original vibrant colors
@@ -451,7 +494,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // Apply saved system name
   if (systemNameInput) {
     systemNameInput.value = savedSystemName;
-    
+
     // Update system name in real-time across the page
     updateSystemNameDisplay(savedSystemName);
   }
@@ -466,16 +509,16 @@ document.addEventListener('DOMContentLoaded', function () {
     // Remove previous event listeners and add comprehensive one
     const newSaveBtn = saveBtn.cloneNode(true);
     saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
-    
-    newSaveBtn.addEventListener('click', function() {
+
+    newSaveBtn.addEventListener('click', function () {
       let savedCount = 0;
-      
+
       // Save theme
       if (themeSelect) {
         localStorage.setItem('voltview-theme', themeSelect.value);
         savedCount++;
       }
-      
+
       // Save system name
       if (systemNameInput) {
         const newSystemName = systemNameInput.value.trim() || 'VoltView HQ';
@@ -483,7 +526,7 @@ document.addEventListener('DOMContentLoaded', function () {
         updateSystemNameDisplay(newSystemName);
         savedCount++;
       }
-      
+
       // Save email alerts
       if (emailAlertsCheckbox) {
         localStorage.setItem('voltview-email-alerts', emailAlertsCheckbox.checked);
@@ -532,7 +575,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const systemNameInput = document.getElementById('system-name-input');
   const emailAlertsCheckbox = document.getElementById('email-alerts-checkbox');
   const themeSelect = document.getElementById('theme-select');
-  
+
   // Only run on settings page
   if (!systemNameInput && !emailAlertsCheckbox && !themeSelect) {
     return; // Not on settings page
