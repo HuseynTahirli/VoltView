@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,21 +16,21 @@
       max-width: 800px;
       margin: 2rem auto;
     }
-    
+
     .ep-settings-card {
       padding: 2rem;
       background: rgba(24, 17, 41, 0.8);
       border: 1px solid rgba(188, 19, 254, 0.3);
       border-radius: 10px;
     }
-    
+
     .ep-settings-card h3 {
       margin-bottom: 1.5rem;
       padding-bottom: 0.75rem;
       border-bottom: 2px solid rgba(5, 234, 253, 0.2);
       color: var(--cp-cyan);
     }
-    
+
     .setting-item {
       margin-bottom: 1.5rem;
       padding: 1rem;
@@ -37,7 +38,7 @@
       border-radius: 8px;
       border-left: 3px solid var(--cp-cyan);
     }
-    
+
     .setting-item label {
       display: block;
       font-size: 0.95rem;
@@ -45,13 +46,13 @@
       margin-bottom: 0.5rem;
       font-weight: 600;
     }
-    
+
     .setting-description {
       font-size: 0.85rem;
       color: rgba(224, 242, 255, 0.6);
       margin-bottom: 0.75rem;
     }
-    
+
     .ep-input,
     .ep-select {
       width: 100%;
@@ -65,32 +66,32 @@
       font-size: 0.95rem;
       transition: all 0.2s ease;
     }
-    
+
     .ep-input:focus,
     .ep-select:focus {
       outline: none;
       border-color: var(--cp-cyan);
       box-shadow: 0 0 10px rgba(5, 234, 253, 0.3);
     }
-    
+
     .checkbox-wrapper {
       display: flex;
       align-items: center;
       gap: 0.75rem;
     }
-    
+
     .ep-checkbox {
       width: 24px;
       height: 24px;
       cursor: pointer;
       accent-color: var(--cp-cyan);
     }
-    
+
     .checkbox-label {
       font-size: 0.95rem;
       color: #e0f2ff;
     }
-    
+
     .ep-btn-save {
       margin-top: 2rem;
       padding: 1rem 2.5rem;
@@ -101,11 +102,11 @@
       width: 100%;
       max-width: 300px;
     }
-    
+
     .ep-btn-save:hover {
       transform: translateY(-2px);
     }
-    
+
     .settings-info {
       margin-top: 2rem;
       padding: 1rem;
@@ -114,19 +115,21 @@
       border-left: 4px solid var(--cp-cyan);
       font-size: 0.9rem;
     }
-    
+
     .settings-info strong {
       color: var(--cp-cyan);
     }
   </style>
   <script src="script.js" defer></script>
 </head>
+
 <body>
   <header class="ep-topnav">
     <a href="index.html" class="ep-logo-link">
       <span class="ep-logo-svg">
         <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
-          <polyline points="13,29 22,15 17,15 26,3 23,17 28,17 18,35" stroke="#00fff7" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="13,29 22,15 17,15 26,3 23,17 28,17 18,35" stroke="#00fff7" stroke-width="3.4" fill="none"
+            stroke-linecap="round" stroke-linejoin="round" />
         </svg>
       </span>
       <span class="ep-logo-text">VoltView</span>
@@ -143,7 +146,7 @@
     </nav>
   </header>
   <div class="ep-dashboard-searchbar">
-    <input type="text" id="ep-quicksearch" placeholder="🔎 Search dashboard functions..." autocomplete="off"/>
+    <input type="text" id="ep-quicksearch" placeholder="🔎 Search dashboard functions..." autocomplete="off" />
     <div id="ep-quicksearch-results" class="ep-search-results"></div>
   </div>
   <main class="ep-content">
@@ -151,36 +154,25 @@
       <h2>Settings</h2>
       <div class="ep-settings-card">
         <h3>General Settings</h3>
-        
+
         <!-- System Name Setting -->
         <div class="setting-item">
           <label for="system-name-input">System Name</label>
           <div class="setting-description">Customize the name displayed for your VoltView system</div>
-          <input 
-            id="system-name-input" 
-            class="ep-input" 
-            type="text" 
-            value="VoltView HQ" 
-            placeholder="Enter system name"
-            maxlength="50"
-          />
+          <input id="system-name-input" class="ep-input" type="text" value="VoltView HQ" placeholder="Enter system name"
+            maxlength="50" />
         </div>
-        
+
         <!-- Email Alerts Setting -->
         <div class="setting-item">
           <label>Email Alerts</label>
           <div class="setting-description">Receive email notifications for important alerts and anomalies</div>
           <div class="checkbox-wrapper">
-            <input 
-              id="email-alerts-checkbox" 
-              class="ep-checkbox" 
-              type="checkbox" 
-              checked 
-            />
+            <input id="email-alerts-checkbox" class="ep-checkbox" type="checkbox" checked />
             <span class="checkbox-label">Enable email alert notifications</span>
           </div>
         </div>
-        
+
         <!-- Theme Setting -->
         <div class="setting-item">
           <label for="theme-select">Dashboard Theme</label>
@@ -191,17 +183,29 @@
             <option>Dark</option>
           </select>
         </div>
-        
+
         <!-- Save Button -->
-        <button class="ep-btn ep-btn-save">Save Settings</button>
-        
-        <!-- Info Box -->
-        <div class="settings-info">
-          <strong>💡 Tip:</strong> All settings are saved locally in your browser. Theme changes apply immediately, 
-          but other settings will take effect after clicking "Save Settings".
+        <button class="ep-btn ep-btn-save">Save General Settings</button>
+      </div>
+
+      <div class="ep-settings-card" style="margin-top: 2rem;">
+        <h3>Alert Thresholds</h3>
+        <div id="thresholds-container">
+          <div style="text-align:center; padding: 1rem; color: var(--cp-cyan);">Loading thresholds...</div>
         </div>
+
+        <button id="save-thresholds-btn" class="ep-btn ep-btn-save"
+          style="background: linear-gradient(93deg, #bc13fe 0%, #fd3aaf 100%) !important;">Save Thresholds</button>
+      </div>
+
+      <!-- Info Box -->
+      <div class="settings-info">
+        <strong>💡 Tip:</strong> General settings are saved in your browser, while <strong>Thresholds</strong> are saved
+        on the server and apply to all users viewing this dashboard.
       </div>
     </div>
   </main>
+  <script src="settings-api.js" defer></script>
 </body>
+
 </html>

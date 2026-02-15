@@ -46,6 +46,9 @@ app.post("/api/esp32", (req, res) => {
         timestamp,
       });
 
+      // --- NEW: Threshold Monitoring Logic ---
+      checkThresholds({ voltage, current, power, frequency, pf });
+
       res.json({
         ok: true,
         saved: {
@@ -61,6 +64,81 @@ app.post("/api/esp32", (req, res) => {
       });
     }
   );
+});
+
+// Cache for threshold cooldowns to prevent spamming
+const alertCooldowns = {};
+const COOLDOWN_TIME = 5 * 60 * 1000; // 5 minutes
+
+async function checkThresholds(reading) {
+  db.all("SELECT * FROM thresholds", [], (err, thresholds) => {
+    if (err || !thresholds) return;
+
+    thresholds.forEach(t => {
+      let triggered = false;
+      let msg = "";
+      let type = "warning";
+
+      if (t.key === 'power_max' && reading.power > t.value) {
+        triggered = true;
+        msg = `High Power Draw: ${reading.power.toFixed(1)}W exceeds limit of ${t.value}W`;
+        type = "critical";
+      } else if (t.key === 'voltage_max' && reading.voltage > t.value) {
+        triggered = true;
+        msg = `Overvoltage Detected: ${reading.voltage.toFixed(1)}V exceeds limit of ${t.value}V`;
+        type = "critical";
+      } else if (t.key === 'voltage_min' && reading.voltage < t.value && reading.voltage > 50) { // Ignore zero/low voltage (outage)
+        triggered = true;
+        msg = `Undervoltage Detected: ${reading.voltage.toFixed(1)}V is below limit of ${t.value}V`;
+        type = "warning";
+      } else if (t.key === 'current_max' && reading.current > t.value) {
+        triggered = true;
+        msg = `Overcurrent Detected: ${reading.current.toFixed(2)}A exceeds limit of ${t.value}A`;
+        type = "critical";
+      }
+
+      if (triggered) {
+        const lastAlertTime = alertCooldowns[t.key] || 0;
+        const now = Date.now();
+
+        if (now - lastAlertTime > COOLDOWN_TIME) {
+          console.log(`🚨 THRESHOLD TRIGGERED: ${msg}`);
+          const alertTimestamp = new Date().toISOString();
+          db.run(
+            "INSERT INTO alerts (type, message, timestamp, resolved) VALUES (?, ?, ?, 0)",
+            [type, msg, alertTimestamp]
+          );
+          alertCooldowns[t.key] = now;
+        }
+      }
+    });
+  });
+}
+
+// ================== THRESHOLDS API ==================
+app.get("/api/thresholds", (req, res) => {
+  db.all("SELECT * FROM thresholds", [], (err, rows) => {
+    if (err) return res.status(500).json({ error: "DB error" });
+    res.json(rows || []);
+  });
+});
+
+app.post("/api/thresholds", (req, res) => {
+  const { thresholds } = req.body; // Expecting array of {key, value}
+
+  if (!thresholds || !Array.isArray(thresholds)) {
+    return res.status(400).json({ error: "Thresholds array required" });
+  }
+
+  let completed = 0;
+  thresholds.forEach(t => {
+    db.run("UPDATE thresholds SET value = ? WHERE key = ?", [t.value, t.key], (err) => {
+      completed++;
+      if (completed === thresholds.length) {
+        res.json({ ok: true, message: "Thresholds updated" });
+      }
+    });
+  });
 });
 
 // ================== RETURN LATEST READING ==================
@@ -282,8 +360,9 @@ if (!fs.existsSync(reportsDir)) {
 app.use('/reports', express.static(reportsDir));
 
 app.post("/api/reports/generate", (req, res) => {
-  const timestamp = new Date().toISOString();
-  const dateStr = timestamp.slice(0, 10);
+  const now = new Date();
+  const timestamp = now.toISOString(); // Keep ISO for log/internal use
+  const dateStr = now.toLocaleDateString('en-CA'); // Local YYYY-MM-DD
   const filename = `report-${Date.now()}.csv`;
   const filePath = path.join(reportsDir, filename);
   const publicPath = `/reports/${filename}`;
@@ -310,6 +389,15 @@ app.post("/api/reports/generate", (req, res) => {
       if ((r.power || 0) > maxPower) maxPower = r.power;
     });
 
+    // Use local date from latest row, or current local date if no rows
+    // Force en-CA to get YYYY-MM-DD format
+    const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'America/New_York' };
+    const latestRowDate = rows[0].timestamp ? new Date(rows[0].timestamp) : now;
+
+    // Format to YYYY-MM-DD
+    const parts = latestRowDate.toLocaleDateString('en-CA', dateOptions).split('-');
+    const dateStrForReport = `${parts[0]}-${parts[1]}-${parts[2]}`;
+
     const avgPower = (totalPower / count).toFixed(2);
     const avgVoltage = (totalVoltage / count).toFixed(2);
 
@@ -334,7 +422,7 @@ app.post("/api/reports/generate", (req, res) => {
 
       db.run(
         "INSERT INTO reports (date, summary, report_type, status, file_path, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-        [dateStr, summary, "System CSV", "Completed", publicPath, timestamp],
+        [dateStrForReport, summary, "System CSV", "Completed", publicPath, timestamp],
         function (err) {
           if (err) return res.status(500).json({ error: "DB Insert error" });
 
@@ -343,7 +431,7 @@ app.post("/api/reports/generate", (req, res) => {
             message: "Report generated successfully",
             report: {
               id: this.lastID,
-              date: dateStr,
+              date: dateStrForReport,
               summary,
               report_type: "System CSV",
               status: "Completed",

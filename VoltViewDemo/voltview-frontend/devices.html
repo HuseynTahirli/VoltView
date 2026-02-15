@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,12 +13,14 @@
   <link rel="stylesheet" href="ui-improvements.css?v=2" />
   <script src="script.js" defer></script>
 </head>
+
 <body>
   <header class="ep-topnav">
     <a href="index.html" class="ep-logo-link">
       <span class="ep-logo-svg">
         <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
-          <polyline points="13,29 22,15 17,15 26,3 23,17 28,17 18,35" stroke="#00fff7" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="13,29 22,15 17,15 26,3 23,17 28,17 18,35" stroke="#00fff7" stroke-width="3.4" fill="none"
+            stroke-linecap="round" stroke-linejoin="round" />
         </svg>
       </span>
       <span class="ep-logo-text">VoltView</span>
@@ -32,12 +35,13 @@
       <a href="settings.html" class="ep-navbtn">Settings</a>
       <a href="help.html" class="ep-navbtn">Help</a>
     </nav>
+    <script src="devices-api.js" defer></script>
   </header>
   <div class="ep-dashboard-searchbar">
-    <input type="text" id="ep-quicksearch" placeholder="🔎 Search dashboard functions..." autocomplete="off"/>
+    <input type="text" id="ep-quicksearch" placeholder="🔎 Search dashboard functions..." autocomplete="off" />
     <div id="ep-quicksearch-results" class="ep-search-results"></div>
   </div>
-  <main class="ep-content" style="margin-left:220px;">
+  <main class="ep-content">
     <div class="ep-table-section-neon">
       <div class="ep-table-title-neon">Connected Devices</div>
       <div id="ep-devices-table-outer">
@@ -54,8 +58,11 @@
           <tbody id="ep-device-tbody"></tbody>
           <tfoot>
             <tr class="ep-total-row">
-              <td colspan="4" style="text-align:right;padding-right:2.3em;font-size:1.06em;opacity:.98;color:#11fee7;font-weight:700;letter-spacing:.04em;border-top:2.2px solid #5ff1e881;background:rgba(0,255,247,0.04)">Total power draw:</td>
-              <td id="ep-devices-total" style="color:#fff;font-weight:900;font-size:1.16em;text-shadow:0 0 13px #00ffd7c9;">… W</td>
+              <td colspan="4"
+                style="text-align:right;padding-right:2.3em;font-size:1.06em;opacity:.98;color:#11fee7;font-weight:700;letter-spacing:.04em;border-top:2.2px solid #5ff1e881;background:rgba(0,255,247,0.04)">
+                Total power draw:</td>
+              <td id="ep-devices-total"
+                style="color:#fff;font-weight:900;font-size:1.16em;text-shadow:0 0 13px #00ffd7c9;">… W</td>
             </tr>
           </tfoot>
         </table>
@@ -63,9 +70,13 @@
     </div>
   </main>
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      if(window.populateDeviceTable) populateDeviceTable();
+    document.addEventListener('DOMContentLoaded', function () {
+      if (typeof populateDeviceTable === 'function') {
+        populateDeviceTable();
+        setInterval(populateDeviceTable, 3000); // Live updates
+      }
     });
   </script>
 </body>
+
 </html>

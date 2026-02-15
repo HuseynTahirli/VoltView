@@ -51,6 +51,29 @@ db.serialize(() => {
     )`
   );
 
+  // ===== THRESHOLDS TABLE =====
+  db.run(
+    `CREATE TABLE IF NOT EXISTS thresholds (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      key TEXT UNIQUE,
+      value REAL,
+      label TEXT
+    )`,
+    () => {
+      // Seed default thresholds if they don't exist
+      const defaults = [
+        ['power_max', 3500, 'Max Power (W)'],
+        ['voltage_max', 255, 'Max Voltage (V)'],
+        ['voltage_min', 205, 'Min Voltage (V)'],
+        ['current_max', 16, 'Max Current (A)']
+      ];
+
+      defaults.forEach(([key, val, label]) => {
+        db.run(`INSERT OR IGNORE INTO thresholds (key, value, label) VALUES (?, ?, ?)`, [key, val, label]);
+      });
+    }
+  );
+
   // ===== MIGRATE EXISTING TABLE (Add new columns if they don't exist) =====
   db.run(`ALTER TABLE readings ADD COLUMN energy REAL`, (err) => {
     if (err && !err.message.includes("duplicate column")) {

@@ -1,12 +1,14 @@
 // Alerts Page - Real API Integration
-const API_BASE_URL = 'http://localhost:4000/api';
+if (!window.API_BASE_URL) {
+  window.API_BASE_URL = 'http://localhost:4000/api';
+}
 
 let alertsData = [];
 
 // Fetch alerts from backend
 async function fetchAlerts() {
   try {
-    const response = await fetch(`${API_BASE_URL}/alerts`);
+    const response = await fetch(`${window.API_BASE_URL}/alerts`);
     if (!response.ok) throw new Error('Failed to fetch alerts');
     alertsData = await response.json();
     renderAlerts();
@@ -19,7 +21,7 @@ async function fetchAlerts() {
 // Create new alert
 async function createAlert(type, message) {
   try {
-    const response = await fetch(`${API_BASE_URL}/alerts`, {
+    const response = await fetch(`${window.API_BASE_URL}/alerts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ type, message })
@@ -113,7 +115,7 @@ function renderAlerts() {
 
   // Add click handlers to resolve buttons
   tbody.querySelectorAll('.ep-alert-res-btn-big').forEach(btn => {
-    btn.addEventListener('click', async function() {
+    btn.addEventListener('click', async function () {
       const alertId = this.getAttribute('data-alert-id');
       this.textContent = 'RESOLVING...';
       this.disabled = true;
@@ -131,7 +133,7 @@ function showError(message) {
 }
 
 // Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   console.log('📢 Alerts page initializing...');
 
   // Fetch alerts on load
@@ -143,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Setup simulate alert button
   const simBtn = document.getElementById('sim-alert-btn');
   if (simBtn) {
-    simBtn.addEventListener('click', async function() {
+    simBtn.addEventListener('click', async function () {
       const type = document.getElementById('sim-alert-type').value;
       const msgInput = document.getElementById('sim-alert-msg');
       const message = msgInput.value.trim();

@@ -96,10 +96,26 @@ a,
 }
 
 /* 8. Improve Alert and Live Waveform Visibility */
-.live-waveform-title,
-.ep-alert-res-btn-big {
-  text-shadow: 0 0 8px rgba(5, 234, 253, 0.5),
-    0 0 10px rgba(188, 19, 254, 0.4) !important;
+.live-waveform-title {
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Dedicated high-visibility Generate Report Button */
+#btn-generate-report {
+  background: #05eafd !important;
+  color: #060511 !important;
+  border: 1px solid #fff !important;
+  text-shadow: none !important;
+  font-weight: 900 !important;
+  box-shadow: 0 0 10px rgba(5, 234, 253, 0.5) !important;
+  opacity: 1 !important;
+  cursor: pointer;
+}
+
+#btn-generate-report:hover {
+  background: #fff !important;
+  color: #05eafd !important;
+  box-shadow: 0 0 20px #05eafd !important;
 }
 
 /* 9. Reduce Neon Rail Glow */
@@ -637,17 +653,35 @@ textarea:focus {
 }
 
 /* === REPORTS TABLE IMPROVEMENTS === */
+#ep-reports-card {
+  max-width: 100% !important;
+  width: 96% !important;
+  margin: 0 auto 30px auto !important;
+  padding: 2rem !important;
+}
+
 .fixed-table {
   table-layout: fixed !important;
   width: 100% !important;
+  font-family: 'Inter', 'Segoe UI', Roboto, Arial, sans-serif !important;
+}
+
+.ep-table.fixed-table th {
+  font-family: 'Orbitron', sans-serif !important;
+  font-size: 1rem !important;
+  letter-spacing: 1px;
+}
+
+.ep-table.fixed-table td {
+  font-size: 1rem !important;
 }
 
 .col-date {
-  width: 140px;
+  width: 130px;
 }
 
 .col-download {
-  width: 100px;
+  width: 110px;
   text-align: center;
 }
 
@@ -656,11 +690,11 @@ textarea:focus {
 }
 
 .col-type {
-  width: 130px;
+  width: 140px;
 }
 
 .col-status {
-  width: 120px;
+  width: 130px;
 }
 
 .ep-table.fixed-table td {
