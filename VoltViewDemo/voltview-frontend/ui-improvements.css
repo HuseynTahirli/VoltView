@@ -601,7 +601,6 @@ textarea:focus {
   flex-wrap: wrap !important;
   justify-content: flex-end !important;
   flex: 1 !important;
-  max-width: calc(100% - 200px) !important;
 }
 
 .ep-navbtn {

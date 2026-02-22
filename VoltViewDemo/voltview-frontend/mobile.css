@@ -1,15 +1,26 @@
 /* === VOLTVIEW MOBILE OPTIMIZATIONS === */
 
+* {
+    box-sizing: border-box !important;
+}
+
+body {
+    overflow-x: hidden !important;
+    width: 100% !important;
+}
+
 @media screen and (max-width: 768px) {
 
     /* 1. Reset Containers */
     .ep-centered-container,
     .ep-content,
-    .dashboard-content {
+    .dashboard-content,
+    .ep-dashboard-struct {
         padding: 10px !important;
         width: 100% !important;
         max-width: 100% !important;
         margin: 0 !important;
+        overflow-x: hidden !important;
     }
 
     /* 2. Top Navigation & Mobile Sidebar */
@@ -101,10 +112,17 @@
         border-color: var(--cp-cyan) !important;
     }
 
-    /* 3. Dashboard Tiles */
-    .ep-row-tiles {
+    /* 3. Dashboard Tiles & Analytics Grids */
+    .ep-row-tiles,
+    .ep-analytics-metrics-grid,
+    .ep-analytics-grid {
         grid-template-columns: 1fr 1fr !important;
         gap: 10px !important;
+        width: 100% !important;
+    }
+
+    .ep-analytics-card {
+        padding: 15px !important;
     }
 
     /* 4. Dashboard Panels & Rows */
@@ -208,6 +226,11 @@
     .ep-table {
         min-width: 600px !important;
         /* Force scroll instead of squish */
+    }
+
+    /* 12. Hide 3D Widget on mobile */
+    .hologram-widget-3d {
+        display: none !important;
     }
 }
 
