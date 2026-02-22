@@ -1,4 +1,11 @@
-const API_ANALYTICS_URL = 'http://localhost:4000/api';
+if (typeof window.API_BASE_URL === 'undefined') {
+    if (window.location.port === '3000') {
+        window.API_BASE_URL = 'http://' + window.location.hostname + ':4000/api';
+    } else {
+        window.API_BASE_URL = window.location.origin + '/api';
+    }
+}
+const API_ANALYTICS_URL = window.API_BASE_URL;
 
 document.addEventListener('DOMContentLoaded', () => {
     if (!document.getElementById('main-power')) return;

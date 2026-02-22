@@ -1,7 +1,9 @@
-if (typeof API_BASE_URL === 'undefined') {
-    var API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:4000/api'
-        : '/api';
+if (typeof window.API_BASE_URL === 'undefined') {
+    if (window.location.port === '3000') {
+        window.API_BASE_URL = 'http://' + window.location.hostname + ':4000/api';
+    } else {
+        window.API_BASE_URL = window.location.origin + '/api';
+    }
 }
 
 async function fetchThresholds() {
@@ -9,7 +11,7 @@ async function fetchThresholds() {
     if (!container) return;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/thresholds`);
+        const response = await fetch(`${window.API_BASE_URL}/thresholds`);
         const thresholds = await response.json();
 
         container.innerHTML = thresholds.map(t => `
@@ -45,7 +47,7 @@ async function saveThresholds() {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/thresholds`, {
+        const response = await fetch(`${window.API_BASE_URL}/thresholds`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ thresholds })

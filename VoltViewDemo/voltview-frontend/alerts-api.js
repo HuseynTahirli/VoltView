@@ -1,6 +1,10 @@
 // Alerts Page - Real API Integration
-if (!window.API_BASE_URL) {
-  window.API_BASE_URL = 'http://localhost:4000/api';
+if (typeof window.API_BASE_URL === 'undefined') {
+  if (window.location.port === '3000') {
+    window.API_BASE_URL = 'http://' + window.location.hostname + ':4000/api';
+  } else {
+    window.API_BASE_URL = window.location.origin + '/api';
+  }
 }
 
 let alertsData = [];
@@ -45,7 +49,7 @@ async function createAlert(type, message) {
 // Resolve an alert
 async function resolveAlert(alertId) {
   try {
-    const response = await fetch(`${API_BASE_URL}/alerts/${alertId}/resolve`, {
+    const response = await fetch(`${window.API_BASE_URL}/alerts/${alertId}/resolve`, {
       method: 'PUT'
     });
 

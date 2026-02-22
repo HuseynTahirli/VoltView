@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoltView - Secure Portal</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="ui-improvements.css?v=2">
+    <link rel="stylesheet" href="mobile.css?v=2">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: radial-gradient(circle at center, #1a1039 0%, #060511 100%);
+            overflow: hidden;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        .login-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            background: rgba(31, 22, 66, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(5, 234, 253, 0.3);
+            border-radius: 20px;
+            box-shadow: 0 0 40px rgba(188, 19, 254, 0.2);
+            text-align: center;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .login-logo svg {
+            filter: drop-shadow(0 0 10px #05eafd);
+            margin-bottom: 20px;
+        }
+
+        .login-title {
+            font-family: 'Orbitron', sans-serif;
+            color: #ffffff;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px #bc13fe;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+            transition: all 0.3s ease;
+        }
+
+        .form-group label {
+            display: block;
+            color: #05eafd;
+            font-size: 0.8rem;
+            margin-bottom: 6px;
+            margin-left: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(188, 19, 254, 0.5);
+            border-radius: 8px;
+            color: #ffffff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #05eafd;
+            box-shadow: 0 0 15px rgba(5, 234, 253, 0.4);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        #confirm-group {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            margin-bottom: 0;
+            transition: all 0.4s ease;
+        }
+
+        .signup-mode #confirm-group {
+            max-height: 100px;
+            opacity: 1;
+            margin-bottom: 20px;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(90deg, #bc13fe, #fd3aaf);
+            border: none;
+            border-radius: 10px;
+            color: #ffffff;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(188, 19, 254, 0.4);
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(188, 19, 254, 0.6);
+            filter: brightness(1.2);
+        }
+
+        .toggle-auth {
+            margin-top: 25px;
+            color: #05eafd;
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+            transition: all 0.3s ease;
+            opacity: 0.7;
+        }
+
+        .toggle-auth:hover {
+            opacity: 1;
+            text-shadow: 0 0 10px #05eafd;
+        }
+
+        .msg-box {
+            font-size: 0.85rem;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error-msg {
+            background: rgba(253, 58, 175, 0.1);
+            color: #fd3aaf;
+            border: 1px solid rgba(253, 58, 175, 0.3);
+        }
+
+        .success-msg {
+            background: rgba(0, 251, 168, 0.1);
+            color: #00fba8;
+            border: 1px solid rgba(0, 251, 168, 0.3);
+        }
+
+        .bg-glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(188, 19, 254, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .glow-1 {
+            top: -200px;
+            left: -200px;
+        }
+
+        .glow-2 {
+            bottom: -200px;
+            right: -200px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-glow glow-1"></div>
+    <div class="bg-glow glow-2"></div>
+
+    <div class="login-container" id="auth-box">
+        <div class="login-logo">
+            <svg width="50" height="50" viewBox="0 0 40 40" fill="none">
+                <polyline points="13,29 22,15 17,15 26,3 23,17 28,17 18,35" stroke="#05eafd" stroke-width="3"
+                    fill="none" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+        </div>
+        <h1 class="login-title" id="auth-title">VoltView</h1>
+
+        <form id="auth-form">
+            <div class="form-group">
+                <label for="email">Designation (Email)</label>
+                <input type="email" id="email" required placeholder="name@domain.com">
+            </div>
+            <div class="form-group">
+                <label for="password">Access Code</label>
+                <input type="password" id="password" required placeholder="••••••••">
+            </div>
+            <div class="form-group" id="confirm-group">
+                <label for="confirm-password">Verify Access Code</label>
+                <input type="password" id="confirm-password" placeholder="••••••••">
+            </div>
+
+            <button type="submit" class="login-btn" id="submit-btn">Authorize</button>
+            <div id="msg-box" class="msg-box"></div>
+        </form>
+
+        <div class="toggle-auth" id="toggle-auth">First Time? Register Identity</div>
+    </div>
+
+    <script src="auth-api.js"></script>
+    <script>
+        let isLoginMode = true;
+        const authBox = document.getElementById('auth-box');
+        const authForm = document.getElementById('auth-form');
+        const authTitle = document.getElementById('auth-title');
+        const submitBtn = document.getElementById('submit-btn');
+        const toggleBtn = document.getElementById('toggle-auth');
+        const msgBox = document.getElementById('msg-box');
+        const confirmInput = document.getElementById('confirm-password');
+
+        toggleBtn.addEventListener('click', () => {
+            isLoginMode = !isLoginMode;
+            authBox.classList.toggle('signup-mode', !isLoginMode);
+            authTitle.textContent = isLoginMode ? 'VoltView' : 'Initialize';
+            submitBtn.textContent = isLoginMode ? 'Authorize' : 'Register';
+            toggleBtn.textContent = isLoginMode ? 'First Time? Register Identity' : 'Have Identity? Sign In';
+            confirmInput.required = !isLoginMode;
+            msgBox.style.display = 'none';
+        });
+
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            const confirmPass = confirmInput.value;
+
+            msgBox.style.display = 'none';
+
+            if (!isLoginMode && pass !== confirmPass) {
+                showMsg('Codes do not match', 'error');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = isLoginMode ? 'Verifying...' : 'Processing...';
+
+            try {
+                if (isLoginMode) {
+                    const res = await login(email, pass);
+                    if (res.ok) {
+                        window.location.href = 'index.html';
+                    } else {
+                        showMsg(res.message || 'Invalid Credentials', 'error');
+                    }
+                } else {
+                    const res = await signup(email, pass);
+                    if (res.ok) {
+                        showMsg(res.message, 'success');
+                    } else {
+                        showMsg(res.message || 'Error occurred', 'error');
+                    }
+                }
+            } catch (err) {
+                showMsg('Connection Interrupted', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = isLoginMode ? 'Authorize' : 'Register';
+            }
+        });
+
+        function showMsg(text, type) {
+            msgBox.textContent = text;
+            msgBox.className = `msg-box ${type}-msg`;
+            msgBox.style.display = 'block';
+        }
+    </script>
+</body>
+
+</html>
