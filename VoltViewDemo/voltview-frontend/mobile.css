@@ -221,9 +221,4 @@
     .ep-stat-value {
         font-size: 1.5rem !important;
     }
-
-    .ep-navlinks {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-    }
 }
