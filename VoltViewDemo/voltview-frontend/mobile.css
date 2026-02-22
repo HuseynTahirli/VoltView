@@ -12,55 +12,93 @@
         margin: 0 !important;
     }
 
-    /* 2. Top Navigation */
+    /* 2. Top Navigation & Mobile Sidebar */
     .ep-topnav {
         padding: 10px 15px !important;
         height: 60px !important;
+        display: flex !important;
         flex-direction: row !important;
         justify-content: space-between !important;
         align-items: center !important;
+        position: relative !important;
+        z-index: 100 !important;
     }
 
     .ep-logo-link {
-        gap: 5px !important;
+        gap: 8px !important;
+        z-index: 101 !important;
     }
 
     .ep-logo-text {
-        font-size: 1.2rem !important;
+        font-size: 1.1rem !important;
     }
 
-    .ep-logo-svg svg {
-        width: 24px !important;
-        height: 24px !important;
-    }
-
+    /* THE SIDEBAR DRAWER */
     .ep-navlinks {
-        display: none !important;
+        display: flex !important;
         flex-direction: column !important;
         position: fixed !important;
-        top: 60px !important;
-        left: 0 !important;
-        width: 100% !important;
-        height: calc(100vh - 60px) !important;
+        top: 0 !important;
+        right: -100% !important;
+        /* Start off-screen */
+        width: 280px !important;
+        /* Sidebar width */
+        height: 100vh !important;
         background: rgba(10, 8, 30, 0.98) !important;
         backdrop-filter: blur(20px) !important;
-        padding: 30px 20px !important;
-        gap: 15px !important;
-        z-index: 2000 !important;
-        border-top: 1px solid var(--cp-purple) !important;
+        padding: 80px 20px 30px 20px !important;
+        /* Padding for topnav height */
+        gap: 12px !important;
+        z-index: 1000 !important;
+        border-left: 2px solid var(--cp-purple) !important;
+        transition: right 0.3s ease-in-out !important;
+        box-shadow: -10px 0 30px rgba(0, 0, 0, 0.7) !important;
     }
 
     .ep-navlinks.active {
-        display: flex !important;
+        right: 0 !important;
+        /* Slide in */
+    }
+
+    /* THE BACKDROP */
+    .ep-mobile-backdrop {
+        display: block !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: rgba(0, 0, 0, 0.6) !important;
+        backdrop-filter: blur(5px) !important;
+        z-index: 999 !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        transition: all 0.3s ease !important;
+        pointer-events: none !important;
+    }
+
+    .ep-mobile-backdrop.active {
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
     }
 
     .ep-navbtn {
         width: 100% !important;
-        padding: 15px !important;
-        font-size: 1rem !important;
+        padding: 14px 18px !important;
+        font-size: 0.95rem !important;
         text-align: left !important;
         border-radius: 8px !important;
         background: rgba(255, 255, 255, 0.05) !important;
+        display: block !important;
+        margin-bottom: 5px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1px !important;
+    }
+
+    .ep-navbtn.active {
+        background: rgba(5, 234, 253, 0.1) !important;
+        border-color: var(--cp-cyan) !important;
     }
 
     /* 3. Dashboard Tiles */
@@ -146,33 +184,15 @@
         padding: 5px;
         border-radius: 5px;
         cursor: pointer;
-        z-index: 1001;
+        z-index: 2001 !important;
+        /* Higher than sidebar */
         box-shadow: 0 0 10px rgba(5, 234, 253, 0.2);
+        transition: all 0.2s ease;
     }
 
     .ep-mobile-toggle.active {
         background: var(--cp-cyan);
         color: var(--cp-bg-dark);
-    }
-
-    .ep-navlinks {
-        display: none !important;
-        /* Hide by default on mobile */
-        flex-direction: column;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        width: 100%;
-        background: rgba(10, 8, 30, 0.95);
-        backdrop-filter: blur(15px);
-        padding: 20px !important;
-        border-bottom: 2px solid var(--cp-purple);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        z-index: 1000;
-    }
-
-    .ep-navlinks.active {
-        display: flex !important;
     }
 
     /* 11. Table Scroll Fixes */

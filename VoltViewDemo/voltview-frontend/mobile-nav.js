@@ -20,15 +20,32 @@ document.addEventListener('DOMContentLoaded', () => {
     if (header) {
         header.appendChild(toggleBtn);
 
+        // Create backdrop element
+        const backdrop = document.createElement('div');
+        backdrop.className = 'ep-mobile-backdrop';
+        document.body.appendChild(backdrop);
+
         const closeMenu = () => {
             navLinks.classList.remove('active');
             toggleBtn.classList.remove('active');
+            backdrop.classList.remove('active');
+            document.body.style.overflow = ''; // Restore scroll
+        };
+
+        const openMenu = () => {
+            navLinks.classList.add('active');
+            toggleBtn.classList.add('active');
+            backdrop.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent scroll
         };
 
         toggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            navLinks.classList.toggle('active');
-            toggleBtn.classList.toggle('active');
+            if (navLinks.classList.contains('active')) {
+                closeMenu();
+            } else {
+                openMenu();
+            }
         });
 
         // Close menu when a link is clicked
@@ -36,9 +53,12 @@ document.addEventListener('DOMContentLoaded', () => {
             link.addEventListener('click', closeMenu);
         });
 
-        // Close menu when clicking outside
+        // Close menu when clicking backdrop
+        backdrop.addEventListener('click', closeMenu);
+
+        // Close menu when clicking outside header/nav
         document.addEventListener('click', (e) => {
-            if (!header.contains(e.target) && navLinks.classList.contains('active')) {
+            if (!header.contains(e.target) && !navLinks.contains(e.target) && navLinks.classList.contains('active')) {
                 closeMenu();
             }
         });
