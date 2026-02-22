@@ -20,9 +20,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (header) {
         header.appendChild(toggleBtn);
 
-        toggleBtn.addEventListener('click', () => {
+        const closeMenu = () => {
+            navLinks.classList.remove('active');
+            toggleBtn.classList.remove('active');
+        };
+
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             navLinks.classList.toggle('active');
             toggleBtn.classList.toggle('active');
+        });
+
+        // Close menu when a link is clicked
+        navLinks.querySelectorAll('.ep-navbtn').forEach(link => {
+            link.addEventListener('click', closeMenu);
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!header.contains(e.target) && navLinks.classList.contains('active')) {
+                closeMenu();
+            }
         });
     }
 });
