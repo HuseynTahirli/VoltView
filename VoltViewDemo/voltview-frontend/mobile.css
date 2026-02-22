@@ -15,10 +15,14 @@ body {
     .ep-centered-container,
     .ep-content,
     .dashboard-content,
-    .ep-dashboard-struct {
+    .ep-dashboard-struct,
+    .ep-analytics-container,
+    .ep-table-section-neon,
+    .readings-table.ep-card {
         padding: 10px !important;
         width: 100% !important;
         max-width: 100% !important;
+        min-width: 0 !important;
         margin: 0 !important;
         overflow-x: hidden !important;
     }
@@ -123,6 +127,14 @@ body {
 
     .ep-analytics-card {
         padding: 15px !important;
+        min-width: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .ep-graph-fixed {
+        min-width: 0 !important;
+        width: 100% !important;
     }
 
     /* 4. Dashboard Panels & Rows */
@@ -231,6 +243,24 @@ body {
     /* 12. Hide 3D Widget on mobile */
     .hologram-widget-3d {
         display: none !important;
+    }
+
+    /* 13. Fix specific fixed-width tables */
+    .ep-table.col-setup {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .ep-table.col-setup th,
+    .ep-table.col-setup td {
+        width: auto !important;
+    }
+
+    /* 14. Responsive status bar grid */
+    .ep-statusbar-grid {
+        grid-template-columns: 1fr 1fr !important;
+        width: 100% !important;
+        padding: 10px !important;
     }
 }
 
