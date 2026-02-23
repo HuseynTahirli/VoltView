@@ -87,7 +87,7 @@ function renderAlerts() {
 
   tbody.innerHTML = '';
 
-  const activeAlerts = alertsData.filter(alert => alert.resolved === 0);
+  const activeAlerts = alertsData.filter(alert => !alert.resolved);
 
   if (activeAlerts.length === 0) {
     tbody.innerHTML = '<tr><td colspan="4" style="color:#44ffaa;font-weight:bold;text-align:center;font-size:1.2em;">No active alerts! ✨</td></tr>';
