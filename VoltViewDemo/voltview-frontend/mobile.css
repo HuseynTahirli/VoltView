@@ -1,370 +1,232 @@
-/* === VOLTVIEW MOBILE OPTIMIZATIONS === */
+/* === VOLTVIEW ULTIMATE MOBILE OVERRIDE === */
+/* Loaded last to ensure total authority over all other styles */
 
 * {
     box-sizing: border-box !important;
 }
 
-body {
-    overflow-x: hidden !important;
-    width: 100% !important;
-}
-
 @media screen and (max-width: 768px) {
 
-    /* 1. Reset Containers */
-    .ep-centered-container,
+    /* 1. Nuke problematic globals from style.css/responsive-fixes.css */
+    html,
+    body {
+        overflow-x: hidden !important;
+        width: 100% !important;
+        position: relative !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Preserve 3D canvas but ensure it doesn't leak or block */
+    #cyber-bg {
+        width: 100vw !important;
+        height: 100vh !important;
+    }
+
+    /* 2. Standardized Container Fluidity */
     .ep-content,
-    .dashboard-content,
+    .ep-centered-container,
     .ep-dashboard-struct,
+    .dashPage,
+    .dashPanel,
     .ep-analytics-container,
     .ep-table-section-neon,
-    .readings-table.ep-card,
-    .ep-report-table-outer,
     .ep-alerts-container,
-    .settings-section {
-        padding: 10px !important;
+    .settings-section,
+    .ep-card,
+    #ep-reports-card,
+    .readings-table,
+    .ep-report-table-outer {
         width: 100% !important;
         max-width: 100% !important;
         min-width: 0 !important;
+        padding: 10px !important;
         margin: 0 !important;
+        left: 0 !important;
+        transform: none !important;
+        display: block !important;
+        /* Force stack */
         overflow-x: hidden !important;
     }
 
-    /* 2. Top Navigation & Mobile Sidebar */
-    .ep-topnav {
-        padding: 10px 15px !important;
-        height: 60px !important;
-        display: flex !important;
-        flex-direction: row !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        position: relative !important;
-        z-index: 100 !important;
-    }
-
-    .ep-logo-link {
-        gap: 8px !important;
-        z-index: 101 !important;
-    }
-
-    .ep-logo-text {
-        font-size: 1.1rem !important;
-    }
-
-    /* THE SIDEBAR DRAWER */
-    .ep-navlinks {
-        display: flex !important;
-        flex-direction: column !important;
-        position: fixed !important;
-        top: 0 !important;
-        right: -100% !important;
-        /* Start off-screen */
-        width: 280px !important;
-        /* Sidebar width */
-        height: 100vh !important;
-        background: rgba(10, 8, 30, 0.98) !important;
-        backdrop-filter: blur(20px) !important;
-        padding: 80px 20px 30px 20px !important;
-        /* Padding for topnav height */
-        gap: 12px !important;
-        z-index: 1000 !important;
-        border-left: 2px solid var(--cp-purple) !important;
-        transition: right 0.3s ease-in-out !important;
-        box-shadow: -10px 0 30px rgba(0, 0, 0, 0.7) !important;
-    }
-
-    .ep-navlinks.active {
-        right: 0 !important;
-        /* Slide in */
-    }
-
-    /* THE BACKDROP */
-    .ep-mobile-backdrop {
-        display: block !important;
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100vw !important;
-        height: 100vh !important;
-        background: rgba(0, 0, 0, 0.6) !important;
-        backdrop-filter: blur(5px) !important;
-        z-index: 999 !important;
-        opacity: 0 !important;
-        visibility: hidden !important;
-        transition: all 0.3s ease !important;
-        pointer-events: none !important;
-    }
-
-    .ep-mobile-backdrop.active {
-        opacity: 1 !important;
-        visibility: visible !important;
-        pointer-events: auto !important;
-    }
-
-    .ep-navbtn {
-        width: 100% !important;
-        padding: 14px 18px !important;
-        font-size: 0.95rem !important;
-        text-align: left !important;
-        border-radius: 8px !important;
-        background: rgba(255, 255, 255, 0.05) !important;
-        display: block !important;
-        margin-bottom: 5px !important;
-        text-transform: uppercase !important;
-        letter-spacing: 1px !important;
-    }
-
-    .ep-navbtn.active {
-        background: rgba(5, 234, 253, 0.1) !important;
-        border-color: var(--cp-cyan) !important;
-    }
-
-    /* 3. Dashboard Tiles & Analytics Grids - FORCED STACK */
+    /* 3. Force Vertical Stacking on Grids/Flexboxes */
     .ep-row-tiles,
+    .ep-row-panels,
+    .ep-row-table,
+    .statsGrid,
+    .bottomGrid,
     .ep-analytics-metrics-grid,
     .ep-analytics-grid,
-    .ep-statusbar-grid {
-        grid-template-columns: 1fr !important;
-        gap: 20px !important;
-        width: 100% !important;
-    }
-
-    .ep-analytics-card {
-        padding: 15px !important;
-        min-width: 0 !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        margin-bottom: 20px !important;
-        /* Stack vertically with space */
-    }
-
-    .ep-graph-fixed {
-        min-width: 0 !important;
-        width: 100% !important;
-    }
-
-    /* 4. Dashboard Panels & Rows - Universal Vertical Flow */
-    .ep-row-panels,
-    .ep-row-tiles,
-    .ep-settings-grid,
-    .ep-graphs-grid,
     .ep-statusbar-grid,
+    .ep-graphs-grid,
+    .ep-settings-grid,
+    .ep-metrics,
     .ep-tile-row,
-    .ep-metrics {
+    .ep-reports-header,
+    .ep-alerts-sim-panel {
         display: flex !important;
         flex-direction: column !important;
-        align-items: stretch !important;
-        gap: 20px !important;
-        width: 100% !important;
         grid-template-columns: 1fr !important;
+        gap: 15px !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
     }
 
+    /* 4. Card Polish */
+    .ep-dashboard-tile,
     .ep-dashboard-panel,
     .ep-glow-card,
-    .ep-dashboard-tile,
+    .ep-analytics-card,
+    .graph-card,
     .ep-smallcard,
     .ep-avgvolt-neon,
     .ep-load-neon,
     .ep-peak-neon,
     .ep-livepower-neon,
     .ep-settings-card,
-    .graph-card {
+    .setting-item {
         width: 100% !important;
         max-width: 100% !important;
         min-width: 0 !important;
-        margin: 0 0 15px 0 !important;
+        margin: 0 0 10px 0 !important;
         padding: 15px !important;
+        border-radius: 12px !important;
+        flex: none !important;
     }
 
-    /* 5. Typography Adjustments */
-    h1,
-    .ep-logo-text {
-        font-size: 1.5rem !important;
-    }
-
-    h2 {
-        font-size: 1.2rem !important;
-    }
-
-    .ep-card-title {
+    /* 5. Inputs and Buttons */
+    .ep-input,
+    .ep-select,
+    .ep-btn,
+    .ep-btn-save,
+    .ep-alert-res-btn-big,
+    #sim-alert-msg,
+    #sim-alert-type,
+    #sim-alert-btn,
+    #btn-generate-report {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        margin: 5px 0 !important;
+        padding: 12px !important;
         font-size: 1rem !important;
+        display: block !important;
+    }
+
+    /* 6. Dashboard Header (Quantum Core) */
+    .ep-dashboard-header,
+    .dashHeader {
+        flex-direction: column !important;
+        height: auto !important;
+        padding: 15px !important;
+        gap: 10px !important;
+    }
+
+    .ep-dashboard-header-core,
+    .coreWrap {
+        margin: 0 auto !important;
+        transform: scale(0.8) !important;
+        /* Shrink core slightly */
+    }
+
+    /* 7. Typography Adjustments */
+    h1,
+    h2,
+    .ep-logo-text {
+        font-size: 1.4rem !important;
+    }
+
+    h3 {
+        font-size: 1.2rem !important;
     }
 
     .ep-stat-value {
         font-size: 1.8rem !important;
     }
 
-    /* 6. Charts & Waveforms */
-    .live-metric-chart-container,
-    .live-waveform-graph-bg,
-    .ep-graph-fixed {
-        height: 220px !important;
-        /* More vertical space for stacked graphs */
-    }
-
-    /* 7. Tables */
-    .ep-table-container {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .ep-table {
-        font-size: 0.8rem !important;
-    }
-
-    .ep-table th,
-    .ep-table td {
-        padding: 8px 5px !important;
-    }
-
-    /* Hide less important columns on mobile if necessary */
-    .hide-on-mobile {
-        display: none !important;
-    }
-
-    /* 8. Fix Search Bar and General Inputs */
-    .ep-dashboard-searchbar,
-    .ep-input,
-    .ep-select,
-    .setting-item input,
-    .setting-item select {
-        padding: 0 5px !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        min-width: 0 !important;
-    }
-
-    #sim-alert-msg,
-    #sim-alert-type {
-        width: 100% !important;
-        margin-bottom: 10px !important;
-    }
-
-    /* 9. Logout Button Positioning */
-    #voltview-logout-btn {
-        bottom: 10px !important;
-        left: 10px !important;
-    }
-
-    /* 10. Mobile Menu Toggle */
-    .ep-mobile-toggle {
-        display: flex !important;
-        background: none;
-        border: 1px solid var(--cp-cyan);
-        color: var(--cp-cyan);
-        padding: 5px;
-        border-radius: 5px;
-        cursor: pointer;
-        z-index: 2001 !important;
-        /* Higher than sidebar */
-        box-shadow: 0 0 10px rgba(5, 234, 253, 0.2);
-        transition: all 0.2s ease;
-    }
-
-    .ep-mobile-toggle.active {
-        background: var(--cp-cyan);
-        color: var(--cp-bg-dark);
-    }
-
-    /* 11. Table Scroll Fixes */
+    /* 8. Table Responsive Shield */
+    .ep-report-table-outer,
     .ep-table-container,
-    .ep-alerts-container,
-    .ep-analytics-card,
-    #ep-reports-card {
+    .ep-alerts-table-wrapper {
         width: 100% !important;
         overflow-x: auto !important;
-        padding: 15px !important;
+        -webkit-overflow-scrolling: touch;
+        margin-bottom: 20px !important;
+        background: rgba(10, 8, 30, 0.4) !important;
+        padding: 5px !important;
+        border-radius: 8px !important;
     }
 
     .ep-table {
         min-width: 600px !important;
-        /* Force scroll instead of squish */
+        /* Force scroll, prevent squish */
+        width: 100% !important;
     }
 
-    /* 12. Hide 3D Widget on mobile */
-    .hologram-widget-3d {
+    .col-date,
+    .col-download,
+    .col-summary,
+    .col-type,
+    .col-status {
+        width: auto !important;
+        /* Neutralize fixed widths */
+    }
+
+    /* 9. Navigation (Sidebar Drawer) */
+    .ep-topnav {
+        padding: 10px !important;
+        height: 60px !important;
+        justify-content: space-between !important;
+    }
+
+    .ep-navlinks {
+        display: flex !important;
+        flex-direction: column !important;
+        position: fixed !important;
+        top: 0 !important;
+        right: -100% !important;
+        width: 280px !important;
+        height: 100vh !important;
+        background: rgba(10, 8, 30, 0.98) !important;
+        backdrop-filter: blur(20px) !important;
+        padding: 80px 20px !important;
+        z-index: 1000 !important;
+        transition: right 0.3s ease-in-out !important;
+        border-left: 2px solid var(--cp-purple) !important;
+    }
+
+    .ep-navlinks.active {
+        right: 0 !important;
+    }
+
+    .ep-navbtn {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 0 10px 0 !important;
+        text-align: left !important;
+        padding: 15px !important;
+    }
+
+    /* 10. Hide problematic legacy elements */
+    .hologram-widget-3d,
+    .neonRail,
+    .ep-livepower-neon-bar,
+    .ep-avgvolt-neon-bar,
+    .ep-load-neon-bar,
+    .ep-peak-neon-bar {
         display: none !important;
     }
 
-    /* 13. Fix specific fixed-width tables */
-    .ep-table.col-setup {
-        width: 100% !important;
-        min-width: 0 !important;
+    /* 11. Fix specific chart canvas leak */
+    canvas {
+        max-width: 100% !important;
+        height: auto !important;
     }
 
-    .ep-table.col-setup th,
-    .ep-table.col-setup td {
-        width: auto !important;
-    }
-
-    /* 14. Responsive status bar grid - FORCED STACK */
-    .ep-statusbar-grid,
-    .ep-dashboard-header {
-        grid-template-columns: 1fr !important;
-        flex-direction: column !important;
-        width: 100% !important;
-        padding: 15px !important;
-        gap: 15px !important;
-        min-height: 0 !important;
-    }
-
-    .ep-dashboard-header-core {
-        margin: 10px auto !important;
-    }
-
-    /* 15. Reports and Table Neutralization */
-    .ep-report-table-outer,
-    .ep-table-section-neon,
-    .ep-alerts-container,
-    .ep-settings-card {
-        width: 100% !important;
-        min-width: 0 !important;
-        padding: 15px 10px !important;
-        border-radius: 12px !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-    }
-
-    /* 16. Header Stacking for Reports and Alerts */
-    .ep-card h2+button,
-    .ep-alerts-title+div,
-    .ep-alerts-sim-panel {
-        flex-direction: column !important;
-        align-items: stretch !important;
-        width: 100% !important;
-        gap: 15px !important;
-        margin: 10px 0 !important;
-    }
-
-    .ep-alerts-sim-panel {
-        display: flex !important;
-    }
-
-    .ep-alert-res-btn-big {
-        width: 100% !important;
-        min-width: 0 !important;
-        padding: 15px !important;
-    }
-
-    /* 17. Settings Section Polish */
-    .settings-section {
-        margin: 10px auto !important;
-    }
-
-    .setting-item {
-        padding: 10px !important;
-        margin-bottom: 15px !important;
-    }
-}
-
-@media screen and (max-width: 480px) {
-
-    /* Extreme small screen adjustments */
-    .ep-row-tiles {
-        grid-template-columns: 1fr !important;
-    }
-
-    .ep-stat-value {
-        font-size: 1.5rem !important;
+    .live-metric-chart-container,
+    .ep-graph-fixed {
+        height: 200px !important;
     }
 }
