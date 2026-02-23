@@ -4,9 +4,34 @@ const bcrypt = require("bcrypt");
 const fs = require("fs");
 const path = require("path");
 const supabase = require("./supabaseClient");
+const { sendAlertEmail } = require("./mailer");
 
 const app = express();
 const PORT = 4000;
+
+// ── Email / notification settings persisted to settings.json ──────
+const SETTINGS_FILE = path.join(__dirname, "settings.json");
+
+function loadEmailSettings() {
+  try {
+    if (fs.existsSync(SETTINGS_FILE)) {
+      return JSON.parse(fs.readFileSync(SETTINGS_FILE, "utf8"));
+    }
+  } catch (e) {
+    console.error("Error loading settings.json:", e.message);
+  }
+  return { emailAlertsEnabled: false, alertEmail: "" };
+}
+
+function saveEmailSettings(settings) {
+  try {
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2));
+    return true;
+  } catch (e) {
+    console.error("Error saving settings.json:", e.message);
+    return false;
+  }
+}
 
 app.use(cors());
 app.use(express.json());
@@ -118,6 +143,10 @@ async function checkThresholds(reading) {
 
         if (!alertErr) {
           alertCooldowns[t.key] = now;
+          // Send email notification for threshold breach
+          const { emailAlertsEnabled, alertEmail } = loadEmailSettings();
+          sendAlertEmail({ type, message: msg, timestamp: new Date().toISOString(), enabled: emailAlertsEnabled, recipient: alertEmail })
+            .catch(err => console.error("Email send error:", err.message));
         } else {
           console.error("Error creating alert in Supabase:", alertErr);
         }
@@ -316,6 +345,12 @@ app.post("/api/alerts", async (req, res) => {
     .single();
 
   if (error) return res.status(500).json({ error: "Supabase error" });
+
+  // Send email notification (non-blocking — don't fail the request if email errors)
+  const { emailAlertsEnabled, alertEmail } = loadEmailSettings();
+  sendAlertEmail({ type, message, timestamp, enabled: emailAlertsEnabled, recipient: alertEmail })
+    .catch(err => console.error("Email send error:", err.message));
+
   res.json({ ok: true, alert: data });
 });
 
@@ -334,11 +369,34 @@ app.put("/api/alerts/:id/resolve", async (req, res) => {
   res.json({ ok: true, message: "Alert resolved" });
 });
 
+// ================== EMAIL SETTINGS API ==================
+app.get("/api/settings/email", (req, res) => {
+  res.json(loadEmailSettings());
+});
+
+app.post("/api/settings/email", (req, res) => {
+  const { emailAlertsEnabled, alertEmail } = req.body;
+  if (typeof emailAlertsEnabled === "undefined" || typeof alertEmail === "undefined") {
+    return res.status(400).json({ error: "emailAlertsEnabled and alertEmail are required" });
+  }
+  const current = loadEmailSettings();
+  const updated = { ...current, emailAlertsEnabled: !!emailAlertsEnabled, alertEmail: alertEmail.trim() };
+  if (saveEmailSettings(updated)) {
+    console.log(`📧 Email settings updated — enabled: ${updated.emailAlertsEnabled}, recipient: ${updated.alertEmail}`);
+    res.json({ ok: true, settings: updated });
+  } else {
+    res.status(500).json({ error: "Failed to save settings" });
+  }
+});
+
 // ================== REPORTS API ==================
 // Get all reports
 app.get("/api/reports", async (req, res) => {
   const { data, error } = await supabase.from('reports').select('*').order('date', { ascending: false });
-  if (error) return res.status(500).json({ error: "Supabase error" });
+  if (error) {
+    console.error("❌ Supabase GET reports error:", error.message, error.details, error.hint);
+    return res.status(500).json({ error: error.message || "Supabase error" });
+  }
   res.json(data || []);
 });
 
@@ -377,7 +435,10 @@ app.post("/api/reports/generate", async (req, res) => {
     .order('timestamp', { ascending: false })
     .limit(1000);
 
-  if (fetchErr) return res.status(500).json({ error: "Supabase fetch error" });
+  if (fetchErr) {
+    console.error("❌ Supabase fetch readings error:", fetchErr.message, fetchErr.details, fetchErr.hint);
+    return res.status(500).json({ error: fetchErr.message || "Supabase fetch error" });
+  }
   if (!rows || rows.length === 0) return res.status(400).json({ error: "No data available" });
 
   let totalPower = 0;
@@ -412,11 +473,14 @@ app.post("/api/reports/generate", async (req, res) => {
     const summary = `Avg Pwr: ${avgPower}W | Peak: ${maxPower}W | ${count} records`;
     const { data: reportData, error: reportErr } = await supabase
       .from('reports')
-      .insert([{ date: dateStrForReport, summary, report_type: "System CSV", status: "Completed", file_path: publicPath, created_at: timestamp }])
+      .insert([{ date: dateStrForReport, summary, report_type: "Generated", status: "Generated", file_path: publicPath }])
       .select()
       .single();
 
-    if (reportErr) return res.status(500).json({ error: "Supabase insert error" });
+    if (reportErr) {
+      console.error("❌ Supabase insert error:", reportErr.message, reportErr.details, reportErr.hint);
+      return res.status(500).json({ error: reportErr.message || "Supabase insert error" });
+    }
 
     res.json({
       ok: true,

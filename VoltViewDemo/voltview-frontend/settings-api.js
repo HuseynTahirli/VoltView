@@ -74,11 +74,70 @@ async function saveThresholds() {
     }
 }
 
+// ── Email Settings ────────────────────────────────────────────────
+
+async function fetchEmailSettings() {
+    try {
+        const response = await fetch(`${window.API_BASE_URL}/settings/email`);
+        if (!response.ok) return;
+        const settings = await response.json();
+
+        const enabledCheckbox = document.getElementById('email-alerts-enabled');
+        const emailInput = document.getElementById('alert-email-input');
+        if (enabledCheckbox) enabledCheckbox.checked = !!settings.emailAlertsEnabled;
+        if (emailInput) emailInput.value = settings.alertEmail || '';
+    } catch (err) {
+        console.error('Error fetching email settings:', err);
+    }
+}
+
+async function saveEmailSettings() {
+    const btn = document.getElementById('save-email-settings-btn');
+    const statusEl = document.getElementById('email-settings-status');
+    const enabled = document.getElementById('email-alerts-enabled')?.checked ?? false;
+    const email = document.getElementById('alert-email-input')?.value.trim() ?? '';
+
+    if (enabled && !email) {
+        if (statusEl) statusEl.innerHTML = '<span style="color:#ff1744;">Please enter a recipient email address.</span>';
+        return;
+    }
+
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
+    try {
+        const response = await fetch(`${window.API_BASE_URL}/settings/email`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ emailAlertsEnabled: enabled, alertEmail: email })
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.ok) {
+            if (statusEl) statusEl.innerHTML = '<span style="color:#00fba8;">✅ Email settings saved!</span>';
+        } else {
+            if (statusEl) statusEl.innerHTML = `<span style="color:#ff1744;">Error: ${result.error || 'Failed to save'}</span>`;
+        }
+    } catch (err) {
+        console.error('Error saving email settings:', err);
+        if (statusEl) statusEl.innerHTML = '<span style="color:#ff1744;">Failed to reach server.</span>';
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Save Email Settings'; }
+        setTimeout(() => { if (statusEl) statusEl.innerHTML = ''; }, 4000);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     fetchThresholds();
+    fetchEmailSettings();
 
     const saveBtn = document.getElementById('save-thresholds-btn');
     if (saveBtn) {
         saveBtn.addEventListener('click', saveThresholds);
+    }
+
+    const saveEmailBtn = document.getElementById('save-email-settings-btn');
+    if (saveEmailBtn) {
+        saveEmailBtn.addEventListener('click', saveEmailSettings);
     }
 });

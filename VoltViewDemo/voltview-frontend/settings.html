@@ -199,10 +199,42 @@
         <button id="save-thresholds-btn" class="ep-btn ep-btn-save">Save Thresholds</button>
       </div>
 
+      <!-- Email Notifications Card -->
+      <div class="ep-settings-card" id="email-settings-card">
+        <h3>Email Notifications</h3>
+
+        <div class="setting-item">
+          <label>Enable Alert Emails</label>
+          <div class="setting-description">Send an email every time a critical or warning alert is triggered</div>
+          <div class="checkbox-wrapper">
+            <input id="email-alerts-enabled" class="ep-checkbox" type="checkbox" />
+            <span class="checkbox-label">Send email when an alert fires</span>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <label for="alert-email-input">Recipient Email Address</label>
+          <div class="setting-description">Alert emails will be sent to this address</div>
+          <input id="alert-email-input" class="ep-input" type="email" placeholder="you@example.com" />
+        </div>
+
+        <div class="setting-item" style="background:rgba(5,234,253,0.05);border-left-color:rgba(5,234,253,0.4);">
+          <div style="font-size:0.85rem;color:rgba(224,242,255,0.7);line-height:1.6;">
+            <strong style="color:var(--cp-cyan);">SMTP setup required in server .env:</strong><br>
+            Set <code style="color:#fdc432;">SMTP_USER</code> (your Gmail address) and
+            <code style="color:#fdc432;">SMTP_PASS</code> (Gmail App Password) in
+            <code>voltview-backend/.env</code>, then restart the server.
+          </div>
+        </div>
+
+        <button id="save-email-settings-btn" class="ep-btn ep-btn-save">Save Email Settings</button>
+        <div id="email-settings-status" style="margin-top:10px;font-size:0.9rem;"></div>
+      </div>
+
       <!-- Info Box -->
       <div class="settings-info">
-        <strong>💡 Tip:</strong> General settings are saved in your browser, while <strong>Thresholds</strong> are saved
-        on the server and apply to all users viewing this dashboard.
+        <strong>💡 Tip:</strong> General settings are saved in your browser, while <strong>Thresholds</strong> and
+        <strong>Email Settings</strong> are saved on the server and apply to all users viewing this dashboard.
       </div>
     </div>
   </main>

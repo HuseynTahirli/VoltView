@@ -122,10 +122,42 @@ function getChartOptions() {
 window.exportChartToPNG = function (canvasId) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
+
+    let dataURL;
+    try {
+        dataURL = canvas.toDataURL('image/png');
+    } catch (e) {
+        console.error('exportChartToPNG: canvas read failed', e);
+        alert('Could not export chart. Please try again.');
+        return;
+    }
+
+    // iOS Safari does not support the download attribute on data: URLs.
+    // Opening in a new tab lets the user long-press → Save Image.
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (isIOS) {
+        const newTab = window.open();
+        if (newTab) {
+            newTab.document.write(
+                '<html><head><title>' + canvasId + '</title></head>' +
+                '<body style="margin:0;background:#000;display:flex;justify-content:center;align-items:center;min-height:100vh;">' +
+                '<img src="' + dataURL + '" style="max-width:100%;height:auto;">' +
+                '<p style="position:fixed;bottom:20px;left:0;right:0;text-align:center;color:#fff;font-size:14px;opacity:.8;">Long-press the image and tap Save</p>' +
+                '</body></html>'
+            );
+        } else {
+            alert('Allow pop-ups for this page to export charts, or take a screenshot.');
+        }
+        return;
+    }
+
+    // Desktop and Android: append link to DOM so the click registers properly
     const link = document.createElement('a');
     link.download = `${canvasId}-${new Date().toISOString().slice(0, 10)}.png`;
-    link.href = canvas.toDataURL('image/png');
+    link.href = dataURL;
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
 };
 
 function createGradient(ctx, color) {
