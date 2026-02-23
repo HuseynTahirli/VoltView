@@ -12,6 +12,12 @@
    ========================================================== */
 @media screen and (max-width: 900px) {
 
+    /* Remove scale transform that shifts content right on tablets/large phones */
+    .ep-content {
+        transform: none !important;
+        overflow-x: hidden !important;
+    }
+
     /* Keep topnav as a horizontal row (logo + toggle button) */
     .ep-topnav {
         flex-direction: row !important;
