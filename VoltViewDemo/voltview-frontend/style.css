@@ -2369,8 +2369,6 @@ input[type=checkbox].ep-checkbox {
   padding: 0;
   min-height: calc(100vh - 58px);
   box-sizing: border-box;
-  transform: scale(1.2);
-  transform-origin: top left;
   overflow-x: hidden;
   background: #111c32 !important;
   background-image: none !important;
