@@ -19,7 +19,9 @@ body {
     .ep-analytics-container,
     .ep-table-section-neon,
     .readings-table.ep-card,
-    .ep-report-table-outer {
+    .ep-report-table-outer,
+    .ep-alerts-container,
+    .settings-section {
         padding: 10px !important;
         width: 100% !important;
         max-width: 100% !important;
@@ -141,17 +143,37 @@ body {
         width: 100% !important;
     }
 
-    /* 4. Dashboard Panels & Rows */
-    .ep-row-panels {
+    /* 4. Dashboard Panels & Rows - Universal Vertical Flow */
+    .ep-row-panels,
+    .ep-row-tiles,
+    .ep-settings-grid,
+    .ep-graphs-grid,
+    .ep-statusbar-grid,
+    .ep-tile-row,
+    .ep-metrics {
+        display: flex !important;
         flex-direction: column !important;
-        gap: 15px !important;
+        align-items: stretch !important;
+        gap: 20px !important;
+        width: 100% !important;
+        grid-template-columns: 1fr !important;
     }
 
     .ep-dashboard-panel,
-    .ep-glow-card {
+    .ep-glow-card,
+    .ep-dashboard-tile,
+    .ep-smallcard,
+    .ep-avgvolt-neon,
+    .ep-load-neon,
+    .ep-peak-neon,
+    .ep-livepower-neon,
+    .ep-settings-card,
+    .graph-card {
         width: 100% !important;
         max-width: 100% !important;
         min-width: 0 !important;
+        margin: 0 0 15px 0 !important;
+        padding: 15px !important;
     }
 
     /* 5. Typography Adjustments */
@@ -200,9 +222,22 @@ body {
         display: none !important;
     }
 
-    /* 8. Fix Search Bar */
-    .ep-dashboard-searchbar {
+    /* 8. Fix Search Bar and General Inputs */
+    .ep-dashboard-searchbar,
+    .ep-input,
+    .ep-select,
+    .setting-item input,
+    .setting-item select {
         padding: 0 5px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    #sim-alert-msg,
+    #sim-alert-type {
+        width: 100% !important;
+        margin-bottom: 10px !important;
     }
 
     /* 9. Logout Button Positioning */
@@ -263,20 +298,62 @@ body {
     }
 
     /* 14. Responsive status bar grid - FORCED STACK */
-    .ep-statusbar-grid {
+    .ep-statusbar-grid,
+    .ep-dashboard-header {
         grid-template-columns: 1fr !important;
+        flex-direction: column !important;
         width: 100% !important;
-        padding: 10px !important;
+        padding: 15px !important;
         gap: 15px !important;
+        min-height: 0 !important;
+    }
+
+    .ep-dashboard-header-core {
+        margin: 10px auto !important;
     }
 
     /* 15. Reports and Table Neutralization */
     .ep-report-table-outer,
-    .ep-table-section-neon {
+    .ep-table-section-neon,
+    .ep-alerts-container,
+    .ep-settings-card {
         width: 100% !important;
         min-width: 0 !important;
         padding: 15px 10px !important;
         border-radius: 12px !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    /* 16. Header Stacking for Reports and Alerts */
+    .ep-card h2+button,
+    .ep-alerts-title+div,
+    .ep-alerts-sim-panel {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        gap: 15px !important;
+        margin: 10px 0 !important;
+    }
+
+    .ep-alerts-sim-panel {
+        display: flex !important;
+    }
+
+    .ep-alert-res-btn-big {
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 15px !important;
+    }
+
+    /* 17. Settings Section Polish */
+    .settings-section {
+        margin: 10px auto !important;
+    }
+
+    .setting-item {
+        padding: 10px !important;
+        margin-bottom: 15px !important;
     }
 }
 
