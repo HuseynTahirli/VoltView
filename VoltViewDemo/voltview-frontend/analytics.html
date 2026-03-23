@@ -17,34 +17,25 @@
   <script src="mobile-nav.js" defer></script>
   <script src="script.js" defer></script>
   <script src="analytics.js" defer></script>
+  <link rel="stylesheet" href="theme-black-silver.css?v=2" />
 </head>
 
 <body>
   <canvas id="cyber-bg" class="cyber-bg-canvas"></canvas>
   <header class="ep-topnav">
     <a href="index.html" class="ep-logo-link">
-      <span class="ep-logo-svg">
-        <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
-          <polyline points="13,29 22,15 17,15 26,3 23,17 28,17 18,35" stroke="#00fff7" stroke-width="3.4" fill="none"
-            stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-      </span>
+      <span class="ep-logo-svg"><img src="assets/voltviewlogo.png" alt="VoltView" style="height:36px;width:auto;mix-blend-mode:screen;" /></span>
       <span class="ep-logo-text">VoltView</span>
     </a>
     <nav class="ep-navlinks">
       <a href="index.html" class="ep-navbtn">Dashboard</a>
       <a href="analytics.html" class="ep-navbtn active">Analytics</a>
-      <a href="devices.html" class="ep-navbtn">Devices</a>
       <a href="live-readings.html" class="ep-navbtn">Live Readings</a>
       <a href="reports.html" class="ep-navbtn">Reports</a>
       <a href="alerts.html" class="ep-navbtn">Alerts</a>
       <a href="settings.html" class="ep-navbtn">Settings</a>
-      <a href="help.html" class="ep-navbtn">Help</a>
-    </nav>
+      </nav>
   </header>
-  <div class="ep-dashboard-searchbar">
-    <input type="text" id="ep-quicksearch" placeholder="🔎 Search dashboard functions..." autocomplete="off" />
-    <div id="ep-quicksearch-results" class="ep-search-results"></div>
   </div>
   <main class="ep-content">
     <div class="ep-analytics-container">
@@ -110,55 +101,8 @@
         </div>
       </section>
       <footer class="ep-footer">VoltView Analytics &copy; 2025</footer>
-      <!-- HOLOGRAM NODE 3D WIDGET -->
-      <div id="hologram-node-widget" class="hologram-widget-3d">
-        <div class="holo-cube" id="holo-cube">
-          <div class="holo-face front"></div>
-          <div class="holo-face back"></div>
-          <div class="holo-face right"></div>
-          <div class="holo-face left"></div>
-          <div class="holo-face top"></div>
-          <div class="holo-face bottom"></div>
-          <div class="holo-lines"></div>
-          <div class="holo-node sensor" data-node="sensor">Sensor</div>
-          <div class="holo-node gateway" data-node="gateway">Gateway</div>
-          <div class="holo-node dashboard" data-node="dashboard">Dashboard</div>
-          <div class="holo-animated-dot"></div>
-        </div>
-        <div class="holo-label shadow">Hologram Node</div>
-      </div>
-      <!-- Modal dialogs for each node -->
-      <div class="holo-modal" id="holo-modal-sensor">
-        <div class="holo-modal-content">
-          <div class="holo-modal-title">Sensor Actions</div>
-          <button class="holo-modal-btn">Reconnect</button>
-          <button class="holo-modal-btn">Calibrate</button>
-          <button class="holo-modal-btn">View Logs</button>
-          <button class="holo-modal-btn">Test Alert</button>
-          <button class="holo-modal-btn holo-modal-close">Close</button>
-        </div>
-      </div>
-      <div class="holo-modal" id="holo-modal-gateway">
-        <div class="holo-modal-content">
-          <div class="holo-modal-title">Gateway Actions</div>
-          <button class="holo-modal-btn">Reconnect</button>
-          <button class="holo-modal-btn">Calibrate</button>
-          <button class="holo-modal-btn">View Logs</button>
-          <button class="holo-modal-btn">Test Alert</button>
-          <button class="holo-modal-btn holo-modal-close">Close</button>
-        </div>
-      </div>
-      <div class="holo-modal" id="holo-modal-dashboard">
-        <div class="holo-modal-content">
-          <div class="holo-modal-title">Dashboard Actions</div>
-          <button class="holo-modal-btn">Reconnect</button>
-          <button class="holo-modal-btn">Calibrate</button>
-          <button class="holo-modal-btn">View Logs</button>
-          <button class="holo-modal-btn">Test Alert</button>
-          <button class="holo-modal-btn holo-modal-close">Close</button>
-        </div>
-      </div>
-    </div>
+          </div>
+  </main>
   </main>
 </body>
 

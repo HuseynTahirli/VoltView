@@ -14,35 +14,26 @@
   <link rel="stylesheet" href="mobile.css?v=3" />
   <script src="script.js" defer></script>
   <script src="mobile-nav.js" defer></script>
+  <link rel="stylesheet" href="theme-black-silver.css?v=2" />
 </head>
 
 <body>
   <header class="ep-topnav">
     <a href="index.html" class="ep-logo-link">
-      <span class="ep-logo-svg">
-        <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
-          <polyline points="13,29 22,15 17,15 26,3 23,17 28,17 18,35" stroke="#00fff7" stroke-width="3.4" fill="none"
-            stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-      </span>
+      <span class="ep-logo-svg"><img src="assets/voltviewlogo.png" alt="VoltView" style="height:36px;width:auto;mix-blend-mode:screen;" /></span>
       <span class="ep-logo-text">VoltView</span>
     </a>
     <nav class="ep-navlinks">
       <a href="index.html" class="ep-navbtn">Dashboard</a>
       <a href="analytics.html" class="ep-navbtn">Analytics</a>
-      <a href="devices.html" class="ep-navbtn active">Devices</a>
       <a href="live-readings.html" class="ep-navbtn">Live Readings</a>
       <a href="reports.html" class="ep-navbtn">Reports</a>
       <a href="alerts.html" class="ep-navbtn">Alerts</a>
       <a href="settings.html" class="ep-navbtn">Settings</a>
-      <a href="help.html" class="ep-navbtn">Help</a>
-    </nav>
+      </nav>
     <script src="auth-api.js"></script>
     <script src="devices-api.js" defer></script>
   </header>
-  <div class="ep-dashboard-searchbar">
-    <input type="text" id="ep-quicksearch" placeholder="🔎 Search dashboard functions..." autocomplete="off" />
-    <div id="ep-quicksearch-results" class="ep-search-results"></div>
   </div>
   <main class="ep-content">
     <div class="ep-table-section-neon">

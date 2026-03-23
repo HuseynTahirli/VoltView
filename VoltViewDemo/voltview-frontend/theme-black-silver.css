@@ -1,0 +1,352 @@
+/* ═══════════════════════════════════════════════════════════════════
+   VoltView — Black/Silver Theme Override
+   Loaded LAST → wins over all other stylesheets
+═══════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ── 1. CSS VARIABLES ─────────────────────────────────────────────── */
+:root {
+  --ep-bg:          #000000;
+  --ep-surface:     #0A0A0A;
+  --ep-surface2:    #111111;
+  --ep-border:      #1A1A1A;
+  --ep-text:        #E5E7EB;
+  --ep-text-muted:  #6B7280;
+  --ep-blue:        #3B82F6;
+  --ep-yellow:      #FACC15;
+  --ep-primary:     #3B82F6;
+  --cp-cyan:        #3B82F6;
+}
+
+/* ── 2. BASE ──────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box !important; }
+
+body {
+  background: #000000 !important;
+  background-image: none !important;
+  color: #E5E7EB !important;
+  font-family: 'Inter', 'Segoe UI', sans-serif !important;
+}
+
+/* Kill cyber canvas background */
+.cyber-bg-canvas { display: none !important; }
+
+/* Kill all animations and neon effects */
+* {
+  animation-name: none !important;
+  text-shadow: none !important;
+}
+
+/* ── 3. TYPOGRAPHY ───────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6,
+.ep-logo-text, .ep-card-title, .ep-alerts-title {
+  font-family: 'Inter', 'Segoe UI', sans-serif !important;
+  color: #E5E7EB !important;
+  text-shadow: none !important;
+  letter-spacing: 0 !important;
+}
+
+/* ── 4. NAVIGATION BAR ───────────────────────────────────────────── */
+.ep-topnav {
+  background: rgba(10, 10, 10, 0.55) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-top: none !important;
+  border-radius: 0 0 16px 16px !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 0 16px rgba(255, 255, 255, 0.12),
+    0 0 40px rgba(255, 255, 255, 0.06),
+    0 8px 32px rgba(0, 0, 0, 0.6) !important;
+  height: 56px !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 1000 !important;
+}
+
+/* Logo */
+.ep-logo-link {
+  text-decoration: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+.ep-logo-svg {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  display: flex !important;
+  align-items: center !important;
+}
+.ep-logo-svg img {
+  background: transparent !important;
+  background-color: transparent !important;
+  display: block !important;
+  mix-blend-mode: screen !important;
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.9)) drop-shadow(0 0 16px rgba(255,255,255,0.5)) !important;
+}
+.ep-logo-svg svg { display: none !important; }
+.ep-logo-text {
+  color: #ffffff !important;
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  font-family: 'Inter', sans-serif !important;
+  letter-spacing: 0.5px !important;
+  text-shadow:
+    0 0 6px rgba(255,255,255,0.9),
+    0 0 16px rgba(255,255,255,0.6),
+    0 0 32px rgba(255,255,255,0.3) !important;
+}
+
+/* Nav buttons */
+.ep-navbtn {
+  color: #9CA3AF !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  padding: 6px 14px !important;
+  border-radius: 6px !important;
+  transition: color 0.15s, background 0.15s !important;
+  text-shadow: none !important;
+}
+.ep-navbtn:hover {
+  color: #ffffff !important;
+  background: rgba(255,255,255,0.06) !important;
+}
+.ep-navbtn.active {
+  color: #ffffff !important;
+  background: rgba(255,255,255,0.1) !important;
+  font-weight: 600 !important;
+}
+
+/* ── 5. CONTENT AREA ─────────────────────────────────────────────── */
+.ep-content {
+  background: #000000 !important;
+  background-image: none !important;
+  padding: 88px 32px 32px !important;
+}
+@media (max-width: 768px) {
+  .ep-content { padding: 72px 16px 16px !important; }
+}
+
+/* Kill decorative rails */
+.ep-left-rail, .ep-right-rail,
+.ep-side-panel, .ep-rail { display: none !important; }
+
+/* ── 6. CARDS ────────────────────────────────────────────────────── */
+.ep-card, .ep-analytics-card, .ep-settings-card,
+.ep-metric-card, .ep-chart-card, .ep-readings-card {
+  background: #0A0A0A !important;
+  border: 1px solid #1A1A1A !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+.ep-card-title {
+  color: #E5E7EB !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  border-bottom: 1px solid #1A1A1A !important;
+  padding-bottom: 12px !important;
+  margin-bottom: 16px !important;
+}
+
+/* ── 7. METRIC TILES ─────────────────────────────────────────────── */
+.ep-tile, .ep-metric-tile, .ep-stat-tile, .ep-kpi-tile {
+  background: #0A0A0A !important;
+  border: 1px solid #1A1A1A !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+.ep-tile-value, .ep-metric-value, .ep-kpi-value {
+  color: #ffffff !important;
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  text-shadow: none !important;
+  font-family: 'Inter', sans-serif !important;
+}
+.ep-tile-label, .ep-metric-label, .ep-kpi-label {
+  color: #6B7280 !important;
+  font-size: 0.8rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  font-weight: 500 !important;
+}
+
+/* ── 8. TABLES ───────────────────────────────────────────────────── */
+.ep-table, table {
+  background: transparent !important;
+  border-collapse: collapse !important;
+}
+.ep-table thead, table thead,
+.ep-table th, table th {
+  background: #111111 !important;
+  background-image: none !important;
+  color: #6B7280 !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  border-bottom: 1px solid #1A1A1A !important;
+}
+.ep-table td, table td {
+  color: #E5E7EB !important;
+  border-bottom: 1px solid #111111 !important;
+  font-size: 0.875rem !important;
+}
+.ep-table tr:hover td, table tr:hover td {
+  background: #0D0D0D !important;
+}
+
+/* ── 9. BUTTONS ──────────────────────────────────────────────────── */
+.ep-btn, button.ep-btn {
+  background: #3B82F6 !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 6px !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  padding: 8px 16px !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  transition: opacity 0.15s !important;
+}
+.ep-btn:hover { opacity: 0.85 !important; }
+.ep-btn-secondary {
+  background: #111111 !important;
+  color: #E5E7EB !important;
+  border: 1px solid #1A1A1A !important;
+}
+
+/* ── 10. INPUTS ──────────────────────────────────────────────────── */
+input, select, textarea,
+.ep-input, .ep-select {
+  background: #111111 !important;
+  border: 1px solid #1A1A1A !important;
+  border-radius: 6px !important;
+  color: #E5E7EB !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 0.875rem !important;
+  box-shadow: none !important;
+}
+input:focus, select:focus, textarea:focus,
+.ep-input:focus, .ep-select:focus {
+  outline: none !important;
+  border-color: #3B82F6 !important;
+  box-shadow: none !important;
+}
+
+/* ── 11. STATUS / BADGES ─────────────────────────────────────────── */
+.ep-status-online, .status-online { color: #22C55E !important; }
+.ep-status-offline, .status-offline { color: #6B7280 !important; }
+.ep-status-warning { color: #FACC15 !important; }
+.ep-badge {
+  background: #111111 !important;
+  border: 1px solid #1A1A1A !important;
+  color: #E5E7EB !important;
+  border-radius: 4px !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+}
+
+/* ── 12. DEVICE INDICATOR ────────────────────────────────────────── */
+.device-indicator {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 4px 10px !important;
+  border-radius: 20px !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  border: 1px solid #1A1A1A !important;
+  background: #0A0A0A !important;
+}
+.device-indicator--online  { border-color: #22C55E !important; color: #22C55E !important; }
+.device-indicator--offline { border-color: #1A1A1A !important; color: #6B7280 !important; }
+.device-indicator--none    { border-color: #1A1A1A !important; color: #6B7280 !important; }
+.device-indicator__dot {
+  width: 7px !important; height: 7px !important;
+  border-radius: 50% !important;
+  background: currentColor !important;
+  box-shadow: none !important;
+}
+
+/* ── 13. ANALYTICS ───────────────────────────────────────────────── */
+.ep-analytics-container { background: transparent !important; }
+.ep-analytics-metrics-card {
+  background: #0A0A0A !important;
+  border: 1px solid #1A1A1A !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  margin-bottom: 24px !important;
+}
+.ep-analytics-metric-label {
+  color: #6B7280 !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+.ep-analytics-metric-value {
+  color: #ffffff !important;
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  text-shadow: none !important;
+}
+
+/* ── 14. CHARTS ──────────────────────────────────────────────────── */
+.ep-graph-fixed, .ep-graph-wrapper {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* ── 15. EMPTY STATES ────────────────────────────────────────────── */
+.ep-empty-state, .empty-state {
+  color: #6B7280 !important;
+  font-size: 0.9rem !important;
+  text-align: center !important;
+  padding: 40px !important;
+}
+
+/* ── 16. FOOTER ──────────────────────────────────────────────────── */
+.ep-footer {
+  color: #374151 !important;
+  border-top: 1px solid #111111 !important;
+  text-align: center !important;
+  padding: 24px !important;
+  font-size: 0.8rem !important;
+  background: transparent !important;
+}
+
+/* ── 17. SEARCH BAR — HIDDEN ─────────────────────────────────────── */
+.ep-dashboard-searchbar { display: none !important; }
+
+/* ── 18. ALERTS ──────────────────────────────────────────────────── */
+.ep-alert-badge-critical { background: rgba(239,68,68,0.15) !important; color: #EF4444 !important; border: 1px solid rgba(239,68,68,0.3) !important; }
+.ep-alert-badge-warning  { background: rgba(250,204,21,0.12) !important; color: #FACC15 !important; border: 1px solid rgba(250,204,21,0.3) !important; }
+.ep-alert-badge-info     { background: rgba(59,130,246,0.12) !important; color: #3B82F6 !important; border: 1px solid rgba(59,130,246,0.3) !important; }
+
+/* ── 19. WAVEFORM ────────────────────────────────────────────────── */
+.ep-live-waveform-card, .ep-waveform-wrapper {
+  background: #0A0A0A !important;
+  border: 1px solid #1A1A1A !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
