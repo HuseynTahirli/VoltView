@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { login, signup } from "@/lib/api";
+import { setSession } from "@/lib/auth";
 
 type Uniforms = {
   [key: string]: { value: number[] | number[][] | number; type: string };
@@ -229,11 +230,19 @@ export const SignInPage = ({ className }: SignInPageProps) => {
     setLoading(true);
     try {
       const res = await login(email, password);
-      if (res.ok) {
-        document.cookie = `voltview_token=${res.username || "authenticated"}; path=/`;
+      if (res.ok && res.access_token) {
+        setSession(res.access_token, res.refresh_token || '');
         router.push("/");
       } else {
-        setMsg({ text: res.message || "Invalid email or password.", type: "error" });
+        // Provide clearer error messages based on Supabase error
+        const errMsg = res.message || '';
+        if (errMsg.toLowerCase().includes('email not confirmed') || errMsg.toLowerCase().includes('confirm')) {
+          setMsg({ text: "Please confirm your email address before signing in. Check your inbox.", type: "error" });
+        } else if (errMsg.toLowerCase().includes('invalid')) {
+          setMsg({ text: "Incorrect email or password. Please try again.", type: "error" });
+        } else {
+          setMsg({ text: errMsg || "Sign in failed. Please try again.", type: "error" });
+        }
       }
     } catch {
       setMsg({ text: "Connection error. Is the server running?", type: "error" });

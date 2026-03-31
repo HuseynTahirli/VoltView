@@ -36,6 +36,21 @@ function saveEmailSettings(settings) {
 app.use(cors());
 app.use(express.json());
 
+// ── JWT Verification Middleware ──────────────────────────────────────
+async function verifyToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ ok: false, message: 'Unauthorized: No token provided' });
+  }
+  const token = authHeader.split(' ')[1];
+  const { data: { user }, error } = await supabase.auth.getUser(token);
+  if (error || !user) {
+    return res.status(401).json({ ok: false, message: 'Unauthorized: Invalid or expired token' });
+  }
+  req.user = user;
+  next();
+}
+
 // Serve static frontend files (unified port 4000 deployment)
 const frontendPath = path.join(__dirname, "../voltview-frontend");
 app.use(express.static(frontendPath));
@@ -156,13 +171,13 @@ async function checkThresholds(reading) {
 }
 
 // ================== THRESHOLDS API ==================
-app.get("/api/thresholds", async (req, res) => {
+app.get("/api/thresholds", verifyToken, async (req, res) => {
   const { data, error } = await supabase.from('thresholds').select('*');
   if (error) return res.status(500).json({ error: "Supabase error" });
   res.json(data || []);
 });
 
-app.post("/api/thresholds", async (req, res) => {
+app.post("/api/thresholds", verifyToken, async (req, res) => {
   const { thresholds } = req.body;
   if (!thresholds || !Array.isArray(thresholds)) {
     return res.status(400).json({ error: "Thresholds array required" });
@@ -180,7 +195,7 @@ app.post("/api/thresholds", async (req, res) => {
 });
 
 // ================== RETURN LATEST READING ==================
-app.get("/api/latest", async (req, res) => {
+app.get("/api/latest", verifyToken, async (req, res) => {
   const { data, error } = await supabase
     .from('readings')
     .select('*')
@@ -193,7 +208,7 @@ app.get("/api/latest", async (req, res) => {
 });
 
 // ================== RETURN FULL HISTORY ==================
-app.get("/api/history", async (req, res) => {
+app.get("/api/history", verifyToken, async (req, res) => {
   const all = req.query.all === "true";
   if (all) {
     const { data, error } = await supabase.from('readings').select('*').order('id', { ascending: true });
@@ -219,7 +234,7 @@ app.get("/api/history", async (req, res) => {
 });
 
 // ================== ANALYTICS API ==================
-app.get("/api/analytics", async (req, res) => {
+app.get("/api/analytics", verifyToken, async (req, res) => {
   const { data: readings, error } = await supabase
     .from('readings')
     .select('*')
@@ -270,7 +285,12 @@ app.post("/api/login", async (req, res) => {
     }
   }
 
-  res.json({ ok: true, username: data.user.email });
+  res.json({
+    ok: true,
+    username: data.user.email,
+    access_token: data.session.access_token,
+    refresh_token: data.session.refresh_token,
+  });
 });
 
 app.post("/api/signup", async (req, res) => {
@@ -317,7 +337,7 @@ app.post("/api/signup", async (req, res) => {
 
 // ================== ALERTS API ==================
 // Get all alerts
-app.get("/api/alerts", async (req, res) => {
+app.get("/api/alerts", verifyToken, async (req, res) => {
   const includeResolved = req.query.resolved === "true";
   let query = supabase.from('alerts').select('*').order('id', { ascending: false });
 
@@ -331,7 +351,7 @@ app.get("/api/alerts", async (req, res) => {
 });
 
 // Create new alert
-app.post("/api/alerts", async (req, res) => {
+app.post("/api/alerts", verifyToken, async (req, res) => {
   const { type, message } = req.body;
   if (!type || !message) {
     return res.status(400).json({ error: "type and message are required" });
@@ -355,7 +375,7 @@ app.post("/api/alerts", async (req, res) => {
 });
 
 // Resolve an alert
-app.put("/api/alerts/:id/resolve", async (req, res) => {
+app.put("/api/alerts/:id/resolve", verifyToken, async (req, res) => {
   const alertId = req.params.id;
   const { data, error } = await supabase
     .from('alerts')
@@ -370,11 +390,11 @@ app.put("/api/alerts/:id/resolve", async (req, res) => {
 });
 
 // ================== EMAIL SETTINGS API ==================
-app.get("/api/settings/email", (req, res) => {
+app.get("/api/settings/email", verifyToken, (req, res) => {
   res.json(loadEmailSettings());
 });
 
-app.post("/api/settings/email", (req, res) => {
+app.post("/api/settings/email", verifyToken, (req, res) => {
   const { emailAlertsEnabled, alertEmail } = req.body;
   if (typeof emailAlertsEnabled === "undefined" || typeof alertEmail === "undefined") {
     return res.status(400).json({ error: "emailAlertsEnabled and alertEmail are required" });
@@ -391,7 +411,7 @@ app.post("/api/settings/email", (req, res) => {
 
 // ================== REPORTS API ==================
 // Get all reports
-app.get("/api/reports", async (req, res) => {
+app.get("/api/reports", verifyToken, async (req, res) => {
   const { data, error } = await supabase.from('reports').select('*').order('date', { ascending: false });
   if (error) {
     console.error("❌ Supabase GET reports error:", error.message, error.details, error.hint);
@@ -401,7 +421,7 @@ app.get("/api/reports", async (req, res) => {
 });
 
 // Create new report
-app.post("/api/reports", async (req, res) => {
+app.post("/api/reports", verifyToken, async (req, res) => {
   const { date, summary, report_type, status, file_path } = req.body;
   if (!date || !summary || !report_type) {
     return res.status(400).json({ error: "date, summary, and report_type are required" });
@@ -422,7 +442,7 @@ if (!fs.existsSync(reportsDir)) {
   fs.mkdirSync(reportsDir);
 }
 
-app.post("/api/reports/generate", async (req, res) => {
+app.post("/api/reports/generate", verifyToken, async (req, res) => {
   const now = new Date();
   const timestamp = now.toISOString();
   const filename = `report-${Date.now()}.csv`;

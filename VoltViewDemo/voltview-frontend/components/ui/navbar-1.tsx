@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import Image from 'next/image';
+import { logout } from '@/lib/auth';
 
 const links = [
   { href: '/', label: 'Dashboard' },
@@ -14,7 +15,6 @@ const links = [
 
 export default function Navbar1() {
   const pathname = usePathname();
-  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -31,8 +31,7 @@ export default function Navbar1() {
   }, [menuOpen]);
 
   const handleLogout = () => {
-    document.cookie = 'voltview_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    router.push('/login');
+    logout(); // clears localStorage token + cookies, then redirects to /login
   };
 
   return (

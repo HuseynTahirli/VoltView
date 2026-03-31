@@ -1,30 +1,42 @@
+import { getAccessToken } from './auth';
+
 export const API_BASE = 'http://localhost:4000/api';
 
+function authHeaders(): HeadersInit {
+  const token = getAccessToken();
+  return token
+    ? { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+    : { 'Content-Type': 'application/json' };
+}
+
 export async function fetchLatest() {
-  const res = await fetch(`${API_BASE}/latest`);
+  const res = await fetch(`${API_BASE}/latest`, { headers: authHeaders() });
   if (!res.ok) return null;
   return res.json();
 }
 
 export async function fetchReadings() {
-  const res = await fetch(`${API_BASE}/history`);
+  const res = await fetch(`${API_BASE}/history`, { headers: authHeaders() });
   if (!res.ok) return [];
   return res.json();
 }
 
 export async function fetchAlerts() {
-  const res = await fetch(`${API_BASE}/alerts`);
+  const res = await fetch(`${API_BASE}/alerts`, { headers: authHeaders() });
   if (!res.ok) return [];
   return res.json();
 }
 
 export async function resolveAlert(id: number) {
-  const res = await fetch(`${API_BASE}/alerts/${id}/resolve`, { method: 'POST' });
+  const res = await fetch(`${API_BASE}/alerts/${id}/resolve`, {
+    method: 'POST',
+    headers: authHeaders(),
+  });
   return res.ok;
 }
 
 export async function fetchThresholds() {
-  const res = await fetch(`${API_BASE}/thresholds`);
+  const res = await fetch(`${API_BASE}/thresholds`, { headers: authHeaders() });
   if (!res.ok) return null;
   return res.json();
 }
@@ -32,7 +44,7 @@ export async function fetchThresholds() {
 export async function saveThresholds(data: object) {
   const res = await fetch(`${API_BASE}/thresholds`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify(data),
   });
   return res.ok;
