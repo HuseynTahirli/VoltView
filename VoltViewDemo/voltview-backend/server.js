@@ -51,23 +51,9 @@ async function verifyToken(req, res, next) {
   next();
 }
 
-// Serve static frontend files (unified port 4000 deployment)
-const frontendPath = path.join(__dirname, "../voltview-frontend");
-app.use(express.static(frontendPath));
-
 // Serve reports directory specifically (for downloads)
 app.use("/reports", express.static(path.join(__dirname, "reports")));
 
-// Explicitly serve index.html for the root route
-app.get("/", (req, res) => {
-  res.sendFile(path.join(frontendPath, "index.html"));
-});
-
-// Fallback for other dashboard routes (if using HTML5 history or for safety)
-app.get(["/dashboard", "/analytics", "/devices", "/alerts", "/settings"], (req, res) => {
-  const page = req.path.substring(1);
-  res.sendFile(path.join(frontendPath, `${page}.html`));
-});
 
 // ================== ESP32 DATA INGESTION ==================
 app.post("/api/esp32", (req, res) => {
