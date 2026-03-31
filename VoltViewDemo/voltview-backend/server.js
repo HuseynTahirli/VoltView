@@ -285,11 +285,18 @@ app.post("/api/signup", async (req, res) => {
     return res.status(400).json({ ok: false, message: "Missing credentials" });
   }
 
-  // 1. Explicitly check if user already exists in public table
-  // Supabase auth.signUp doesn't always error for existing emails to prevent enumeration
-  const { data: existingUser } = await supabase.from('users').select('id').eq('email', email).single();
-  
-  if (existingUser) {
+  // 1. Explicitly check if user already exists in Supabase Auth (using ADMIN privilege)
+  const { data: { users }, error: listError } = await supabase.auth.admin.listUsers();
+  if (!listError) {
+    const existing = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+    if (existing) {
+      return res.status(400).json({ ok: false, message: "Account already exists with this email. Please sign in." });
+    }
+  }
+
+  // 2. Also check our public users table just in case the sync is broken
+  const { data: existingPublic } = await supabase.from('users').select('id').eq('email', email).single();
+  if (existingPublic) {
     return res.status(400).json({ ok: false, message: "Account already exists with this email. Please sign in." });
   }
 
