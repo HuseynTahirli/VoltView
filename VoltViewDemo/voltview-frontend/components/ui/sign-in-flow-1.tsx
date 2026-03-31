@@ -262,13 +262,13 @@ export const SignInPage = ({ className }: SignInPageProps) => {
         setMsg({ text: res.message || "Account created! You can now sign in.", type: "success" });
         setTimeout(() => { setStep("form"); setPassword(""); setMsg(null); }, 2500);
       } else {
-        const alreadyExists = res.message?.toLowerCase().includes("already registered") ||
-          res.message?.toLowerCase().includes("already exists") ||
-          res.message?.toLowerCase().includes("user already");
-        if (alreadyExists) {
-          setMsg({ text: "__exists__", type: "error" });
+        const isExists = res.message?.toLowerCase().includes("already registered") ||
+                        res.message?.toLowerCase().includes("already exists") ||
+                        res.message?.toLowerCase().includes("user already");
+        if (isExists) {
+          setMsg({ text: "An account with this email already exists. Try signing in instead.", type: "error" });
         } else {
-          setMsg({ text: res.message || "An error occurred.", type: "error" });
+          setMsg({ text: res.message || "An error occurred during signup.", type: "error" });
         }
       }
     } catch {

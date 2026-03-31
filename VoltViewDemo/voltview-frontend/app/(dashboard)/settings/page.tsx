@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { fetchThresholds, saveThresholds } from '@/lib/api';
 
 export default function SettingsPage() {
-  const [thresholds, setThresholds] = useState({ voltage_high: 250, voltage_low: 200, power_high: 3000, current_high: 15 });
+  const [thresholds, setThresholds] = useState<any[]>([]);
   const [email, setEmail] = useState('');
   const [emailEnabled, setEmailEnabled] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -13,7 +13,7 @@ export default function SettingsPage() {
   }, []);
 
   const handleSave = async () => {
-    await saveThresholds(thresholds);
+    await saveThresholds({ thresholds });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -27,13 +27,17 @@ export default function SettingsPage() {
       <div className="rounded-xl border p-4 sm:p-6 mb-4" style={{ background: '#0a0a0a', borderColor: '#1a1a1a' }}>
         <h2 className="text-base sm:text-lg font-semibold mb-4 text-white">Alert Thresholds</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-          {Object.entries(thresholds).map(([key, val]) => (
-            <div key={key} className="p-3 rounded-lg" style={{ background: '#111', border: '1px solid #1a1a1a', borderLeft: '3px solid #3b82f6' }}>
-              <label className="block text-xs font-medium text-[#888] mb-1.5 uppercase tracking-wide">
-                {key.replace(/_/g, ' ')}
+          {thresholds.map((t, i) => (
+            <div key={t.id || i} className="p-3 rounded-lg" style={{ background: '#111', border: '1px solid #1a1a1a', borderLeft: '3px solid #3b82f6' }}>
+              <label className="block text-xs font-medium text-[#e0e0e0] mb-1.5 uppercase tracking-wide">
+                {t.label || t.key.replace(/_/g, ' ')}
               </label>
-              <input type="number" value={val} style={inputStyle}
-                onChange={e => setThresholds(prev => ({ ...prev, [key]: Number(e.target.value) }))} />
+              <input type="number" value={t.value} style={inputStyle}
+                onChange={e => {
+                  const newT = [...thresholds];
+                  newT[i] = { ...newT[i], value: Number(e.target.value) };
+                  setThresholds(newT);
+                }} />
             </div>
           ))}
         </div>
@@ -47,7 +51,7 @@ export default function SettingsPage() {
       <div className="rounded-xl border p-4 sm:p-6 mb-4" style={{ background: '#0a0a0a', borderColor: '#1a1a1a' }}>
         <h2 className="text-base sm:text-lg font-semibold mb-4 text-white">Email Notifications</h2>
         <div className="p-3 rounded-lg mb-3" style={{ background: '#111', border: '1px solid #1a1a1a', borderLeft: '3px solid #3b82f6' }}>
-          <label className="block text-xs font-medium text-[#888] mb-1.5 uppercase tracking-wide">Recipient Email</label>
+          <label className="block text-xs font-medium text-[#e0e0e0] mb-1.5 uppercase tracking-wide">Recipient Email</label>
           <input type="email" value={email} placeholder="you@example.com" style={inputStyle}
             onChange={e => setEmail(e.target.value)} />
         </div>
@@ -62,7 +66,7 @@ export default function SettingsPage() {
         </button>
       </div>
 
-      <div className="rounded-lg p-4 text-sm text-[#888]"
+      <div className="rounded-lg p-4 text-sm text-[#d4d4d4]"
         style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', borderLeft: '3px solid #3b82f6' }}>
         <strong className="text-[#3b82f6]">Tip:</strong> Thresholds and Email Settings are saved on the server and apply to all users.
       </div>
