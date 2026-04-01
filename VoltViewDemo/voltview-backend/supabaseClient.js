@@ -9,9 +9,6 @@ if (!supabaseUrl || !supabaseKey) {
     console.error("❌ SUPABASE_URL or SUPABASE_KEY missing in .env file!");
 }
 
-// The service_role key bypasses Row Level Security (RLS) — required for
-// server-side operations on tables that have RLS enabled (e.g. reports).
-// Get it from: Supabase Dashboard → Project Settings → API → service_role
 const activeKey = (supabaseServiceKey && supabaseServiceKey.trim())
     ? supabaseServiceKey.trim()
     : supabaseKey;

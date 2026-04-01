@@ -9,30 +9,6 @@ const { sendAlertEmail } = require("./mailer");
 const app = express();
 const PORT = 4000;
 
-// ── Email / notification settings persisted to settings.json ──────
-const SETTINGS_FILE = path.join(__dirname, "settings.json");
-
-function loadEmailSettings() {
-  try {
-    if (fs.existsSync(SETTINGS_FILE)) {
-      return JSON.parse(fs.readFileSync(SETTINGS_FILE, "utf8"));
-    }
-  } catch (e) {
-    console.error("Error loading settings.json:", e.message);
-  }
-  return { emailAlertsEnabled: false, alertEmail: "" };
-}
-
-function saveEmailSettings(settings) {
-  try {
-    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2));
-    return true;
-  } catch (e) {
-    console.error("Error saving settings.json:", e.message);
-    return false;
-  }
-}
-
 app.use(cors());
 app.use(express.json());
 
@@ -59,7 +35,7 @@ app.use("/reports", express.static(path.join(__dirname, "reports")));
 app.post("/api/esp32", (req, res) => {
   const { voltage, current, power, energy, frequency, pf } = req.body;
 
-  // Validate required fields
+
   if (voltage === undefined || current === undefined || power === undefined) {
     return res.status(400).json({
       ok: false,
@@ -69,7 +45,7 @@ app.post("/api/esp32", (req, res) => {
 
   const timestamp = new Date().toISOString();
 
-  // Insert all PZEM data into Supabase
+
   supabase
     .from('readings')
     .insert([{
@@ -91,7 +67,7 @@ app.post("/api/esp32", (req, res) => {
 
       console.log("📥 PZEM Reading Saved:", savedData);
 
-      // --- NEW: Threshold Monitoring Logic ---
+
       checkThresholds({ voltage, current, power, frequency, pf });
 
       res.json({
@@ -101,15 +77,24 @@ app.post("/api/esp32", (req, res) => {
     });
 });
 
-// Cache for threshold cooldowns to prevent spamming
 const alertCooldowns = {};
-const COOLDOWN_TIME = 5 * 60 * 1000; // 5 minutes
+const COOLDOWN_TIME = 5 * 60 * 1000;
+
+// Returns all users who have email alerts enabled, with their destination address.
+async function getAlertEmailTargets() {
+  const { data: users, error } = await supabase
+    .from('users')
+    .select('email, alert_email, email_alerts_enabled')
+    .eq('email_alerts_enabled', true);
+  if (error || !users) return [];
+  return users.map(u => u.alert_email?.trim() || u.email?.trim()).filter(Boolean);
+}
 
 async function checkThresholds(reading) {
   const { data: thresholds, error } = await supabase.from('thresholds').select('*');
   if (error || !thresholds) return;
 
-  thresholds.forEach(async (t) => {
+  for (const t of thresholds) {
     let triggered = false;
     let msg = "";
     let type = "warning";
@@ -138,22 +123,33 @@ async function checkThresholds(reading) {
 
       if (now - lastAlertTime > COOLDOWN_TIME) {
         console.log(`🚨 THRESHOLD TRIGGERED: ${msg}`);
-        const { error: alertErr } = await supabase
-          .from('alerts')
-          .insert([{ type, message: msg, timestamp: new Date().toISOString(), resolved: false }]);
+
+        // Fetch all registered users so each gets their own alert row
+        const { data: allUsers } = await supabase.from('users').select('id');
+        const ts = new Date().toISOString();
+
+        // One alert row per user (scoped); fall back to one unscoped row if no users yet
+        const alertRows = (allUsers && allUsers.length > 0)
+          ? allUsers.map(u => ({ type, message: msg, timestamp: ts, resolved: false, user_id: u.id }))
+          : [{ type, message: msg, timestamp: ts, resolved: false }];
+
+        const { error: alertErr } = await supabase.from('alerts').insert(alertRows);
 
         if (!alertErr) {
           alertCooldowns[t.key] = now;
-          // Send email notification for threshold breach
-          const { emailAlertsEnabled, alertEmail } = loadEmailSettings();
-          sendAlertEmail({ type, message: msg, timestamp: new Date().toISOString(), enabled: emailAlertsEnabled, recipient: alertEmail })
-            .catch(err => console.error("Email send error:", err.message));
+
+          // Send email to every user who has alerts enabled
+          const targets = await getAlertEmailTargets();
+          for (const recipient of targets) {
+            sendAlertEmail({ type, message: msg, timestamp: ts, enabled: true, recipient })
+              .catch(err => console.error("Email send error:", err.message));
+          }
         } else {
           console.error("Error creating alert in Supabase:", alertErr);
         }
       }
     }
-  });
+  }
 }
 
 // ================== THRESHOLDS API ==================
@@ -219,6 +215,50 @@ app.get("/api/history", verifyToken, async (req, res) => {
   res.json(data.reverse());
 });
 
+// ================== EXPORT API ==================
+app.get("/api/export", verifyToken, async (req, res) => {
+  const { start, end } = req.query;
+  if (!start || !end) {
+    return res.status(400).json({ error: "start and end query params are required (YYYY-MM-DD)" });
+  }
+
+  const startISO = new Date(`${start}T00:00:00.000Z`).toISOString();
+  const endISO   = new Date(`${end}T23:59:59.999Z`).toISOString();
+
+  if (isNaN(new Date(startISO).getTime()) || isNaN(new Date(endISO).getTime())) {
+    return res.status(400).json({ error: "Invalid date format. Use YYYY-MM-DD." });
+  }
+  if (new Date(startISO) > new Date(endISO)) {
+    return res.status(400).json({ error: "start must be before or equal to end" });
+  }
+
+  const { data, error } = await supabase
+    .from('readings')
+    .select('id, timestamp, voltage, current, power, energy, frequency, pf')
+    .gte('timestamp', startISO)
+    .lte('timestamp', endISO)
+    .order('timestamp', { ascending: true });
+
+  if (error) {
+    console.error("Export query error:", error.message);
+    return res.status(500).json({ error: "Database error" });
+  }
+
+  res.json(data || []);
+});
+
+app.get("/api/history/week", verifyToken, async (req, res) => {
+  const now = new Date();
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabase
+    .from('readings')
+    .select('*')
+    .gte('timestamp', weekAgo)
+    .order('timestamp', { ascending: true });
+  if (error) return res.status(500).json({ error: "Supabase error" });
+  res.json(data || []);
+});
+
 // ================== ANALYTICS API ==================
 app.get("/api/analytics", verifyToken, async (req, res) => {
   const { data: readings, error } = await supabase
@@ -237,7 +277,6 @@ app.get("/api/analytics", verifyToken, async (req, res) => {
   res.json({ grouped });
 });
 
-// ================== LOGIN API ==================
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
@@ -254,7 +293,7 @@ app.post("/api/login", async (req, res) => {
     return res.status(401).json({ ok: false, message: error.message });
   }
 
-  // Sync to public 'users' table on login (handles older users)
+
   if (data.user) {
     const { error: dbError } = await supabase
       .from('users')
@@ -310,7 +349,14 @@ app.post("/api/signup", async (req, res) => {
     return res.status(400).json({ ok: false, message: error.message });
   }
 
-  // Sync to public 'users' table
+  // Supabase returns a user with empty identities array when email already exists
+  if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+    return res.status(400).json({
+      ok: false,
+      message: "An account with this email already exists. Please sign in instead."
+    });
+  }
+
   if (data.user) {
     const { error: dbError } = await supabase
       .from('users')
@@ -320,9 +366,8 @@ app.post("/api/signup", async (req, res) => {
         email: email
       }]);
 
-    if (dbError) {
+    if (dbError && !dbError.message.includes('duplicate')) {
       console.error("❌ USER SYNC FAILED:", dbError.message);
-      console.log("Tip: Run the 'Recreate Users Table' SQL in Supabase editor.");
     } else {
       console.log("✅ User metadata synced to public table.");
     }
@@ -330,17 +375,33 @@ app.post("/api/signup", async (req, res) => {
 
   res.json({
     ok: true,
-    message: "Registration successful. Please check your email for confirmation.",
+    message: "Registration successful. Please check your email to confirm your account.",
     user: data.user
   });
 });
-
 
 // ================== ALERTS API ==================
 // Get all alerts
 app.get("/api/alerts", verifyToken, async (req, res) => {
   const includeResolved = req.query.resolved === "true";
+  const { userEmail } = req.query;
+
   let query = supabase.from('alerts').select('*').order('id', { ascending: false });
+
+  if (userEmail) {
+    // Resolve email → UUID, then filter to that user's rows only
+    const { data: user, error: userErr } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', userEmail)
+      .single();
+
+    if (userErr || !user) {
+      // Unknown user — return empty list (never leak other users' alerts)
+      return res.json([]);
+    }
+    query = query.eq('user_id', user.id);
+  }
 
   if (!includeResolved) {
     query = query.eq('resolved', false);
@@ -353,24 +414,36 @@ app.get("/api/alerts", verifyToken, async (req, res) => {
 
 // Create new alert
 app.post("/api/alerts", verifyToken, async (req, res) => {
-  const { type, message } = req.body;
+  const { type, userEmail } = req.body;
+  // Strip all HTML tags from message before storing
+  const message = typeof req.body.message === 'string'
+    ? req.body.message.replace(/<[^>]*>/g, '').trim()
+    : '';
+
   if (!type || !message) {
     return res.status(400).json({ error: "type and message are required" });
+  }
+
+  let user_id = null;
+  if (userEmail) {
+    const { data: user } = await supabase.from('users').select('id').eq('email', userEmail).single();
+    user_id = user?.id || null;
   }
 
   const timestamp = new Date().toISOString();
   const { data, error } = await supabase
     .from('alerts')
-    .insert([{ type, message, timestamp, resolved: false }])
+    .insert([{ type, message, timestamp, resolved: false, user_id }])
     .select()
     .single();
 
   if (error) return res.status(500).json({ error: "Supabase error" });
 
-  // Send email notification (non-blocking — don't fail the request if email errors)
-  const { emailAlertsEnabled, alertEmail } = loadEmailSettings();
-  sendAlertEmail({ type, message, timestamp, enabled: emailAlertsEnabled, recipient: alertEmail })
-    .catch(err => console.error("Email send error:", err.message));
+  const targets = await getAlertEmailTargets();
+  for (const recipient of targets) {
+    sendAlertEmail({ type, message, timestamp, enabled: true, recipient })
+      .catch(err => console.error("Email send error:", err.message));
+  }
 
   res.json({ ok: true, alert: data });
 });
@@ -391,23 +464,44 @@ app.put("/api/alerts/:id/resolve", verifyToken, async (req, res) => {
 });
 
 // ================== EMAIL SETTINGS API ==================
-app.get("/api/settings/email", verifyToken, (req, res) => {
-  res.json(loadEmailSettings());
+app.get("/api/settings/email", verifyToken, async (req, res) => {
+  const { userEmail } = req.query;
+  if (!userEmail) return res.json({ emailAlertsEnabled: false, alertEmail: '' });
+
+  const { data, error } = await supabase
+    .from('users')
+    .select('alert_email, email_alerts_enabled')
+    .eq('email', userEmail)
+    .single();
+
+  if (error || !data) return res.json({ emailAlertsEnabled: false, alertEmail: '' });
+  res.json({
+    emailAlertsEnabled: !!data.email_alerts_enabled,
+    alertEmail: data.alert_email || '',
+  });
 });
 
-app.post("/api/settings/email", verifyToken, (req, res) => {
-  const { emailAlertsEnabled, alertEmail } = req.body;
-  if (typeof emailAlertsEnabled === "undefined" || typeof alertEmail === "undefined") {
-    return res.status(400).json({ error: "emailAlertsEnabled and alertEmail are required" });
+app.post("/api/settings/email", verifyToken, async (req, res) => {
+  const { emailAlertsEnabled, alertEmail, userEmail } = req.body;
+  if (typeof emailAlertsEnabled === "undefined" || typeof alertEmail === "undefined" || !userEmail) {
+    return res.status(400).json({ error: "userEmail, emailAlertsEnabled, and alertEmail are required" });
   }
-  const current = loadEmailSettings();
-  const updated = { ...current, emailAlertsEnabled: !!emailAlertsEnabled, alertEmail: alertEmail.trim() };
-  if (saveEmailSettings(updated)) {
-    console.log(`📧 Email settings updated — enabled: ${updated.emailAlertsEnabled}, recipient: ${updated.alertEmail}`);
-    res.json({ ok: true, settings: updated });
-  } else {
-    res.status(500).json({ error: "Failed to save settings" });
+
+  const { error } = await supabase
+    .from('users')
+    .update({
+      alert_email: alertEmail.trim(),
+      email_alerts_enabled: !!emailAlertsEnabled,
+    })
+    .eq('email', userEmail);
+
+  if (error) {
+    console.error("Error saving email settings to Supabase:", error.message);
+    return res.status(500).json({ error: "Failed to save settings" });
   }
+
+  console.log(`📧 Email settings saved for ${userEmail} — enabled: ${emailAlertsEnabled}, recipient: ${alertEmail.trim() || '(none)'}`);
+  res.json({ ok: true });
 });
 
 // ================== REPORTS API ==================
@@ -437,7 +531,7 @@ app.post("/api/reports", verifyToken, async (req, res) => {
   if (error) return res.status(500).json({ error: "Supabase error" });
   res.json({ ok: true, report: data });
 });
-// Ensure reports directory exists
+
 const reportsDir = path.join(__dirname, 'reports');
 if (!fs.existsSync(reportsDir)) {
   fs.mkdirSync(reportsDir);
@@ -511,7 +605,6 @@ app.post("/api/reports/generate", verifyToken, async (req, res) => {
   });
 });
 
-// ================== START SERVER ==================
 app.listen(PORT, () => {
   console.log(`🔥 VoltView backend running at http://localhost:${PORT}`);
 });

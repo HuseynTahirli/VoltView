@@ -1,15 +1,5 @@
 const nodemailer = require('nodemailer');
 
-/**
- * Sends an alert email via Gmail SMTP.
- *
- * Required .env vars:
- *   SMTP_USER  — your Gmail address  (e.g. you@gmail.com)
- *   SMTP_PASS  — Gmail App Password  (Settings → Security → App Passwords)
- *
- * The recipient email is stored in settings.json and managed via
- * the /api/settings/email endpoint.
- */
 async function sendAlertEmail({ type, message, timestamp, enabled, recipient }) {
     if (!enabled) return;
 
@@ -26,7 +16,7 @@ async function sendAlertEmail({ type, message, timestamp, enabled, recipient }) 
         service: 'gmail',
         auth: {
             user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS   // Gmail App Password, NOT your login password
+            pass: process.env.SMTP_PASS   
         }
     });
 
