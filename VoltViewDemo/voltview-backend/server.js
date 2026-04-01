@@ -605,6 +605,54 @@ app.post("/api/reports/generate", verifyToken, async (req, res) => {
   });
 });
 
+// ================== PASSWORD RESET API ==================
+app.post("/api/auth/forgot-password", async (req, res) => {
+  const { email } = req.body;
+  if (!email || !email.includes('@')) {
+    return res.status(400).json({ ok: false, message: 'A valid email address is required.' });
+  }
+
+  const siteUrl = process.env.SITE_URL || 'http://localhost:3000';
+  const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+    redirectTo: `${siteUrl}/reset-password`,
+  });
+
+  // Always return success — never reveal whether the email exists (prevents enumeration)
+  if (error) {
+    console.error('Password reset request error:', error.message);
+  } else {
+    console.log(`🔑 Password reset email sent to: ${email}`);
+  }
+  res.json({ ok: true });
+});
+
+app.post("/api/auth/reset-password", async (req, res) => {
+  const { access_token, password } = req.body;
+  if (!access_token || !password) {
+    return res.status(400).json({ ok: false, message: 'Token and password are required.' });
+  }
+
+  if (password.length < 8) {
+    return res.status(400).json({ ok: false, message: 'Password must be at least 8 characters.' });
+  }
+
+  // Verify the recovery token and identify the user
+  const { data: { user }, error: verifyErr } = await supabase.auth.getUser(access_token);
+  if (verifyErr || !user) {
+    return res.status(401).json({ ok: false, message: 'This reset link is invalid or has expired. Please request a new one.' });
+  }
+
+  // Update the password using admin privileges (bypasses RLS/auth flow)
+  const { error: updateErr } = await supabase.auth.admin.updateUserById(user.id, { password });
+  if (updateErr) {
+    console.error('Password update error:', updateErr.message);
+    return res.status(500).json({ ok: false, message: 'Failed to update password. Please try again.' });
+  }
+
+  console.log(`✅ Password updated successfully for: ${user.email}`);
+  res.json({ ok: true });
+});
+
 app.listen(PORT, () => {
   console.log(`🔥 VoltView backend running at http://localhost:${PORT}`);
 });
