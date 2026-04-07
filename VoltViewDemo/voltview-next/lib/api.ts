@@ -1,6 +1,14 @@
 export const API_BASE = '/api';
 export const LIVE_THRESHOLD_MS = 15000;
 
+function getAuthHeader(): Record<string, string> {
+  const match = typeof document !== 'undefined' 
+    ? document.cookie.match(new RegExp('(^| )voltview_token=([^;]+)'))
+    : null;
+  const token = match ? match[2] : null;
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
+
 export function getDeviceState(reading: { timestamp?: string } | null): 'online' | 'offline' | 'none' {
   if (!reading?.timestamp) return 'none';
   const age = Date.now() - new Date(reading.timestamp).getTime();
@@ -9,7 +17,7 @@ export function getDeviceState(reading: { timestamp?: string } | null): 'online'
 
 export async function fetchLatest() {
   try {
-    const res = await fetch(`${API_BASE}/latest`);
+    const res = await fetch(`${API_BASE}/latest`, { headers: getAuthHeader() });
     if (!res.ok) return null;
     return res.json();
   } catch {
@@ -19,7 +27,7 @@ export async function fetchLatest() {
 
 export async function fetchReadings(limit = 20) {
   try {
-    const res = await fetch(`${API_BASE}/history?limit=${limit}`);
+    const res = await fetch(`${API_BASE}/history?limit=${limit}`, { headers: getAuthHeader() });
     if (!res.ok) return [];
     return res.json();
   } catch {
@@ -29,7 +37,9 @@ export async function fetchReadings(limit = 20) {
 
 export async function fetchExport(start: string, end: string) {
   try {
-    const res = await fetch(`${API_BASE}/export?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
+    const res = await fetch(`${API_BASE}/export?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`, {
+      headers: getAuthHeader()
+    });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'Export failed');
@@ -42,7 +52,7 @@ export async function fetchExport(start: string, end: string) {
 
 export async function fetchWeekReadings() {
   try {
-    const res = await fetch(`${API_BASE}/history/week`);
+    const res = await fetch(`${API_BASE}/history/week`, { headers: getAuthHeader() });
     if (!res.ok) return [];
     return res.json();
   } catch {
@@ -51,10 +61,11 @@ export async function fetchWeekReadings() {
 }
 
 export async function fetchAlerts(userEmail = '') {
-  // Never fetch without a user identity — prevents leaking other users' alerts
   if (!userEmail) return [];
   try {
-    const res = await fetch(`${API_BASE}/alerts?userEmail=${encodeURIComponent(userEmail)}`);
+    const res = await fetch(`${API_BASE}/alerts?userEmail=${encodeURIComponent(userEmail)}`, {
+      headers: getAuthHeader()
+    });
     if (!res.ok) return [];
     return res.json();
   } catch {
@@ -64,18 +75,19 @@ export async function fetchAlerts(userEmail = '') {
 
 export async function resolveAlert(id: number) {
   try {
-    const res = await fetch(`${API_BASE}/alerts/${id}/resolve`, { method: 'PUT' });
+    const res = await fetch(`${API_BASE}/alerts/${id}/resolve`, {
+      method: 'PUT',
+      headers: getAuthHeader()
+    });
     return res.ok;
   } catch {
     return false;
   }
 }
 
-// Thresholds: backend stores as rows [{id, key, value, label}]
-// fetchThresholds returns the raw array; settings page maps to its own state
 export async function fetchThresholds(): Promise<Array<{ id: number; key: string; value: number; label?: string }>> {
   try {
-    const res = await fetch(`${API_BASE}/thresholds`);
+    const res = await fetch(`${API_BASE}/thresholds`, { headers: getAuthHeader() });
     if (!res.ok) return [];
     return res.json();
   } catch {
@@ -83,12 +95,11 @@ export async function fetchThresholds(): Promise<Array<{ id: number; key: string
   }
 }
 
-// saveThresholds sends [{key, value}] array matching backend expectation
 export async function saveThresholds(thresholds: Array<{ key: string; value: number }>) {
   try {
     const res = await fetch(`${API_BASE}/thresholds`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
       body: JSON.stringify({ thresholds }),
     });
     return res.ok;
@@ -99,7 +110,9 @@ export async function saveThresholds(thresholds: Array<{ key: string; value: num
 
 export async function fetchEmailSettings(userEmail: string): Promise<{ emailAlertsEnabled: boolean; alertEmail: string }> {
   try {
-    const res = await fetch(`${API_BASE}/settings/email?userEmail=${encodeURIComponent(userEmail)}`);
+    const res = await fetch(`${API_BASE}/settings/email?userEmail=${encodeURIComponent(userEmail)}`, {
+      headers: getAuthHeader()
+    });
     if (!res.ok) return { emailAlertsEnabled: false, alertEmail: '' };
     return res.json();
   } catch {
@@ -111,7 +124,7 @@ export async function saveEmailSettings(settings: { emailAlertsEnabled: boolean;
   try {
     const res = await fetch(`${API_BASE}/settings/email`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
       body: JSON.stringify(settings),
     });
     return res.ok;
