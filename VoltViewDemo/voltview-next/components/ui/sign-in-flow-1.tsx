@@ -230,7 +230,7 @@ export const SignInPage = ({ className }: SignInPageProps) => {
     try {
       const res = await login(email, password);
       if (res.ok) {
-        document.cookie = `voltview_token=${res.username || "authenticated"}; path=/`;
+        document.cookie = `voltview_token=${res.access_token}; path=/; max-age=604800; SameSite=Lax`;
         router.push("/");
       } else {
         setMsg({ text: res.message || "Invalid email or password.", type: "error" });
