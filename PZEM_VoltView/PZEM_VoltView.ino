@@ -7,12 +7,12 @@
 #define PZEM_TX_PIN 17  // ESP32 TX (Connect to PZEM RX)
 
 // ======== WIFI DETAILS ========
-const char* ssid = "iPhone";
-const char* password = "123456789";
+const char* ssid = "Beast";
+const char* password = "Avish2004";
 
 // ======== SERVER URL ========
 // NOTE: Update this IP address if your computer's IP changes
-String serverURL = "http://172.20.10.2:4000/api/esp32";
+String serverURL = "https://dashboard.gannonknight.xyz/api/esp32";
 
 // ======== READING INTERVAL ========
 const int readingInterval = 5000; // 5 seconds between readings
