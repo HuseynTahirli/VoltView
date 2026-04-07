@@ -205,9 +205,9 @@ const ShaderMaterial = ({ source, uniforms }: { source: string; uniforms: Unifor
   );
 };
 
-const Shader: React.FC<ShaderProps> = ({ source, uniforms, maxFps = 60 }) => (
+const Shader: React.FC<ShaderProps> = ({ source, uniforms }) => (
   <Canvas className="absolute inset-0 h-full w-full">
-    <ShaderMaterial source={source} uniforms={uniforms} maxFps={maxFps} />
+    <ShaderMaterial source={source} uniforms={uniforms} />
   </Canvas>
 );
 
