@@ -1,4 +1,4 @@
-export const API_BASE = 'http://localhost:4000/api';
+export const API_BASE = '/api';
 export const LIVE_THRESHOLD_MS = 15000;
 
 export function getDeviceState(reading: { timestamp?: string } | null): 'online' | 'offline' | 'none' {
