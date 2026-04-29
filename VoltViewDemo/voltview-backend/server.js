@@ -319,65 +319,46 @@ app.post("/api/login", async (req, res) => {
 });
 
 app.post("/api/signup", async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ ok: false, message: "Missing credentials" });
+  return res.status(403).json({ 
+    ok: false, 
+    message: "Public registration is disabled. You must be invited from the dashboard." 
+  });
+});
+
+app.post("/api/users/invite", verifyToken, async (req, res) => {
+  const { email } = req.body;
+  if (!email || !email.includes('@')) {
+    return res.status(400).json({ ok: false, message: "A valid email is required" });
   }
 
-  // 1. Explicitly check if user already exists in Supabase Auth (using ADMIN privilege)
+  // Check if user already exists
   const { data: { users }, error: listError } = await supabase.auth.admin.listUsers();
   if (!listError) {
     const existing = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
     if (existing) {
-      return res.status(400).json({ ok: false, message: "Account already exists with this email. Please sign in." });
+      return res.status(400).json({ ok: false, message: "User already exists." });
     }
   }
 
-  // 2. Also check our public users table just in case the sync is broken
-  const { data: existingPublic } = await supabase.from('users').select('id').eq('email', email).single();
-  if (existingPublic) {
-    return res.status(400).json({ ok: false, message: "Account already exists with this email. Please sign in." });
-  }
-
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
+  const siteUrl = process.env.SITE_URL || 'http://localhost:3000';
+  const { data, error } = await supabase.auth.admin.inviteUserByEmail(email.trim().toLowerCase(), {
+    redirectTo: `${siteUrl}/reset-password`,
   });
 
   if (error) {
-    console.error("Supabase Signup Error:", error.message);
+    console.error("Invite Error:", error.message);
     return res.status(400).json({ ok: false, message: error.message });
   }
 
-  // Supabase returns a user with empty identities array when email already exists
-  if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
-    return res.status(400).json({
-      ok: false,
-      message: "An account with this email already exists. Please sign in instead."
+  if (data.user) {
+    await supabase.from('users').upsert({
+      id: data.user.id,
+      username: email,
+      email: email
     });
   }
 
-  if (data.user) {
-    const { error: dbError } = await supabase
-      .from('users')
-      .insert([{
-        id: data.user.id,
-        username: email,
-        email: email
-      }]);
-
-    if (dbError && !dbError.message.includes('duplicate')) {
-      console.error("❌ USER SYNC FAILED:", dbError.message);
-    } else {
-      console.log("✅ User metadata synced to public table.");
-    }
-  }
-
-  res.json({
-    ok: true,
-    message: "Registration successful. Please check your email to confirm your account.",
-    user: data.user
-  });
+  res.json({ ok: true, message: "Invitation sent successfully." });
 });
 
 // ================== ALERTS API ==================

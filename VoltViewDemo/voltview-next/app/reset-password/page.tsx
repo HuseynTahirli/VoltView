@@ -32,7 +32,7 @@ export default function ResetPasswordPage() {
     const token = params.get("access_token");
     const type = params.get("type");
 
-    if (!token || type !== "recovery") {
+    if (!token || (type !== "recovery" && type !== "invite")) {
       setTokenError(true);
     } else {
       setAccessToken(token);

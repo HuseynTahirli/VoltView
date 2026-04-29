@@ -137,6 +137,45 @@ export default function SettingsPage() {
         </button>
       </div>
 
+      <div className="rounded-xl border p-4 sm:p-6 mb-4" style={{ background: '#0a0a0a', borderColor: '#1a1a1a' }}>
+        <h2 className="text-base sm:text-lg font-semibold mb-1 text-white">User Management</h2>
+        <p className="text-xs text-[#555] mb-4">Invite a new user to access this dashboard. They will receive an email to set their password.</p>
+        <div className="p-3 rounded-lg mb-3" style={{ background: '#111', border: '1px solid #1a1a1a', borderLeft: '3px solid #3b82f6' }}>
+          <label className="block text-xs font-medium text-[#888] mb-1.5 uppercase tracking-wide">Invite User Email</label>
+          <input type="email" id="invite-email" placeholder="newuser@example.com" style={inputStyle} />
+          <p className="text-[10px] text-[#555] mt-1.5" id="invite-msg"></p>
+        </div>
+        <button
+          onClick={async () => {
+            const input = document.getElementById('invite-email') as HTMLInputElement;
+            const msg = document.getElementById('invite-msg') as HTMLParagraphElement;
+            const val = input.value.trim();
+            if (!val) return;
+            msg.innerText = 'Sending invite...';
+            msg.style.color = '#888';
+            try {
+              // Note: using dynamic import or API directly. Let's just use fetch directly to avoid importing inviteUser if it causes issues, but we can import it.
+              const { inviteUser } = await import('@/lib/api');
+              const res = await inviteUser(val);
+              if (res.ok) {
+                msg.innerText = 'Invite sent successfully!';
+                msg.style.color = '#4ade80';
+                input.value = '';
+              } else {
+                msg.innerText = res.message || 'Error sending invite.';
+                msg.style.color = '#f87171';
+              }
+            } catch (e) {
+              msg.innerText = 'Connection error.';
+              msg.style.color = '#f87171';
+            }
+          }}
+          className="w-full sm:w-auto px-6 py-2.5 rounded-lg font-semibold text-sm cursor-pointer transition-colors"
+          style={{ background: '#fff', color: '#000', border: 'none' }}>
+          Send Invitation
+        </button>
+      </div>
+
       <div className="rounded-lg p-4 text-sm text-[#888]"
         style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', borderLeft: '3px solid #3b82f6' }}>
         <strong className="text-[#3b82f6]">Note:</strong> Thresholds apply globally to your device. Email settings are saved to your account in Supabase.
