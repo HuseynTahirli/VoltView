@@ -151,15 +151,6 @@ export async function signup(email: string, password: string) {
   return res.json();
 }
 
-export async function inviteUser(email: string) {
-  const res = await fetch(`${API_BASE}/users/invite`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-    body: JSON.stringify({ email }),
-  });
-  return res.json();
-}
-
 export async function forgotPassword(email: string) {
   const res = await fetch(`${API_BASE}/auth/forgot-password`, {
     method: 'POST',
