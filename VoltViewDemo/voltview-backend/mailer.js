@@ -114,4 +114,77 @@ async function sendAlertEmail({ type, message, timestamp, enabled, recipient }) 
     }
 }
 
-module.exports = { sendAlertEmail };
+async function sendPasswordResetEmail({ email, resetLink }) {
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+        console.warn('⚠️  Password reset email skipped — SMTP_USER / SMTP_PASS not set in .env');
+        return;
+    }
+
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS   
+        }
+    });
+
+    const mailOptions = {
+        from: `"VoltView Accounts" <${process.env.SMTP_USER}>`,
+        to: email.trim(),
+        subject: `🔑 VoltView Password Reset`,
+        html: `
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0a0518;font-family:'Courier New',monospace;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0518;padding:32px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+        <tr>
+          <td style="background:#0b1123;border:2px solid #05eafd;border-radius:12px 12px 0 0;
+                     padding:24px 32px;text-align:center;">
+            <span style="font-size:26px;color:#05eafd;letter-spacing:0.15em;font-weight:bold;">
+              ⚡ VoltView
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#111827;padding:0 32px;">
+            <div style="margin:24px 0;background:#0d1b2a;border:2px solid #05eafd;
+                        border-radius:8px;padding:24px;">
+              <div style="font-size:22px;font-weight:bold;color:#05eafd;
+                          letter-spacing:0.12em;margin-bottom:14px;">
+                PASSWORD RESET
+              </div>
+              <div style="font-size:16px;color:#e0f2ff;line-height:1.5;margin-bottom:16px;">
+                You requested a password reset for your VoltView account. Click the button below to set a new password.
+              </div>
+              <div style="margin-top: 24px; text-align: center;">
+                <a href="${resetLink}" style="background: #05eafd; color: #000; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">
+                  Reset Password
+                </a>
+              </div>
+              <div style="font-size:13px;color:rgba(224,242,255,0.5);border-top:1px solid rgba(255,255,255,0.1);
+                          padding-top:12px;margin-top:24px;">
+                If you did not request this, please ignore this email.
+              </div>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
+        `
+    };
+
+    try {
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`📧 Password reset email sent → ${email} | msgId: ${info.messageId}`);
+    } catch (err) {
+        console.error(`❌ Failed to send password reset email: ${err.message}`);
+    }
+}
+
+module.exports = { sendAlertEmail, sendPasswordResetEmail };

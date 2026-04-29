@@ -613,16 +613,27 @@ app.post("/api/auth/forgot-password", async (req, res) => {
   }
 
   const siteUrl = process.env.SITE_URL || 'http://localhost:3000';
-  const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
-    redirectTo: `${siteUrl}/reset-password`,
+  
+  const { data, error } = await supabase.auth.admin.generateLink({
+    type: 'recovery',
+    email: email.trim().toLowerCase(),
+    options: {
+      redirectTo: `${siteUrl}/reset-password`,
+    }
   });
 
-  // Always return success — never reveal whether the email exists (prevents enumeration)
   if (error) {
-    console.error('Password reset request error:', error.message);
-  } else {
-    console.log(`🔑 Password reset email sent to: ${email}`);
+    console.error('Password reset link generation error:', error.message);
+  } else if (data && data.properties && data.properties.action_link) {
+    // Send the email manually using our SMTP account
+    const { sendPasswordResetEmail } = require('./mailer');
+    await sendPasswordResetEmail({
+      email: email.trim().toLowerCase(),
+      resetLink: data.properties.action_link
+    });
   }
+
+  // Always return success to prevent email enumeration
   res.json({ ok: true });
 });
 
