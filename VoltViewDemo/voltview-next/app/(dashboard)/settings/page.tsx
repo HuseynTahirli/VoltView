@@ -135,6 +135,8 @@ export default function SettingsPage() {
           style={{ background: savedEmail ? '#4ade80' : '#fff', color: '#000', border: 'none' }}>
           {savedEmail ? 'Saved!' : 'Save Email Settings'}
         </button>
+      </div>
+
       <div className="rounded-lg p-4 text-sm text-[#888]"
         style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', borderLeft: '3px solid #3b82f6' }}>
         <strong className="text-[#3b82f6]">Note:</strong> Thresholds apply globally to your device. Email settings are saved to your account in Supabase.
