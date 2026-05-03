@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { fetchLatest, fetchReadings, fetchWeekReadings, getDeviceState } from '@/lib/api';
+import { fetchLatest, fetchReadings, fetchWeekReadings, getDeviceState, unlockDevice, lockDevice } from '@/lib/api';
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
 } from 'recharts';
@@ -94,6 +94,11 @@ export default function Dashboard() {
   const [weekReadings, setWeekReadings] = useState<Reading[]>([]);
   const [deviceState, setDeviceState] = useState<DeviceState>('none');
   const [initialLoad, setInitialLoad] = useState(true);
+  const [deviceLocked, setDeviceLocked] = useState(false);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pin, setPin] = useState('');
+  const [pinError, setPinError] = useState('');
+  const [pinLoading, setPinLoading] = useState(false);
 
   const refresh = useCallback(async () => {
     const [data, hist] = await Promise.all([
@@ -101,6 +106,18 @@ export default function Dashboard() {
       fetchReadings(20),
     ]);
 
+    // If backend says device is locked, show locked state
+    if (data && data.deviceLocked === true) {
+      setDeviceLocked(true);
+      setDeviceState('offline');
+      setLatest(null);
+      setReadings([]);
+      setChartReadings([]);
+      setInitialLoad(false);
+      return;
+    }
+
+    setDeviceLocked(false);
     const state = getDeviceState(data);
     setDeviceState(state);
 
@@ -118,6 +135,20 @@ export default function Dashboard() {
 
     setInitialLoad(false);
   }, []);
+
+  const handleUnlock = async () => {
+    setPinLoading(true);
+    setPinError('');
+    const res = await unlockDevice(pin);
+    setPinLoading(false);
+    if (res.ok) {
+      setShowPinModal(false);
+      setPin('');
+      refresh();
+    } else {
+      setPinError(res.message || 'Invalid PIN');
+    }
+  };
 
   useEffect(() => {
     refresh();
@@ -145,9 +176,9 @@ export default function Dashboard() {
     ? todayReadings.reduce((s, r) => s + (r.energy ?? 0), 0)
     : 0;
 
-  const indicatorColor = deviceState === 'online' ? '#4ade80' : deviceState === 'offline' ? '#facc15' : '#555';
-  const indicatorBorder = deviceState === 'online' ? 'rgba(74,222,128,0.4)' : deviceState === 'offline' ? 'rgba(250,204,21,0.4)' : '#2a2a2a';
-  const indicatorLabel = deviceState === 'online' ? 'Device Online' : deviceState === 'offline' ? 'Device Offline' : 'No Device Connected';
+  const indicatorColor = deviceLocked ? '#ef4444' : deviceState === 'online' ? '#4ade80' : deviceState === 'offline' ? '#facc15' : '#555';
+  const indicatorBorder = deviceLocked ? 'rgba(239,68,68,0.4)' : deviceState === 'online' ? 'rgba(74,222,128,0.4)' : deviceState === 'offline' ? 'rgba(250,204,21,0.4)' : '#2a2a2a';
+  const indicatorLabel = deviceLocked ? 'Device Locked' : deviceState === 'online' ? 'Device Online' : deviceState === 'offline' ? 'Device Offline' : 'No Device Connected';
 
   const tiles = [
     { label: "Today's Usage", value: `${todayUsage.toFixed(3)} kWh`, tip: "Total energy consumed today" },
@@ -183,12 +214,44 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <h1 className="text-xl sm:text-2xl font-bold">Dashboard</h1>
-        <div className="flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium"
-          style={{ background: '#111', border: `1px solid ${indicatorBorder}` }}>
-          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: indicatorColor }} />
-          <span className="text-[#aaa]">{indicatorLabel}</span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium"
+            style={{ background: '#111', border: `1px solid ${indicatorBorder}` }}>
+            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: indicatorColor }} />
+            <span className="text-[#aaa]">{indicatorLabel}</span>
+          </div>
+          {deviceLocked ? (
+            <button
+              onClick={() => { setShowPinModal(true); setPinError(''); setPin(''); }}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-colors"
+              style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: '#ef4444' }}>
+              🔒 Unlock
+            </button>
+          ) : (
+            <button
+              onClick={async () => { await lockDevice(); refresh(); }}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors"
+              style={{ background: '#111', border: '1px solid #222', color: '#555' }}>
+              🔓 Lock
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Device Locked Banner */}
+      {deviceLocked && (
+        <div className="rounded-xl border p-6 mb-6 text-center" style={{ background: 'rgba(239,68,68,0.05)', borderColor: 'rgba(239,68,68,0.2)' }}>
+          <div className="text-4xl mb-3">🔒</div>
+          <div className="text-white font-semibold mb-1">Live Data Locked</div>
+          <div className="text-sm text-[#888] mb-4">Live readings are only available on the authorized device. Enter the device PIN to unlock.</div>
+          <button
+            onClick={() => { setShowPinModal(true); setPinError(''); setPin(''); }}
+            className="px-6 py-2.5 rounded-lg font-semibold text-sm"
+            style={{ background: '#ef4444', color: '#fff', border: 'none', cursor: 'pointer' }}>
+            Enter Device PIN
+          </button>
+        </div>
+      )}
 
       {/* Metric tiles */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
@@ -319,5 +382,46 @@ export default function Dashboard() {
         )}
       </div>
     </div>
+
+    {/* PIN Modal */}
+    {showPinModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)' }}>
+        <div className="rounded-2xl p-8 w-full max-w-sm mx-4" style={{ background: '#0a0a0a', border: '1px solid #2a2a2a' }}>
+          <div className="text-center mb-6">
+            <div className="text-4xl mb-3">🔒</div>
+            <h2 className="text-lg font-bold text-white mb-1">Device PIN</h2>
+            <p className="text-sm text-[#666]">Enter the device PIN to access live readings.</p>
+          </div>
+          <input
+            type="password"
+            placeholder="Enter PIN"
+            value={pin}
+            onChange={e => setPin(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleUnlock()}
+            className="w-full rounded-lg px-4 py-3 text-sm mb-3 outline-none text-center tracking-widest text-lg font-mono"
+            style={{ background: '#111', border: '1px solid #333', color: '#fff' }}
+            autoFocus
+          />
+          {pinError && (
+            <p className="text-xs text-red-400 text-center mb-3">{pinError}</p>
+          )}
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowPinModal(false)}
+              className="flex-1 py-2.5 rounded-lg text-sm font-medium"
+              style={{ background: '#1a1a1a', color: '#888', border: '1px solid #2a2a2a', cursor: 'pointer' }}>
+              Cancel
+            </button>
+            <button
+              onClick={handleUnlock}
+              disabled={pinLoading || !pin}
+              className="flex-1 py-2.5 rounded-lg text-sm font-semibold"
+              style={{ background: pinLoading || !pin ? '#333' : '#4ade80', color: '#000', border: 'none', cursor: pinLoading || !pin ? 'not-allowed' : 'pointer' }}>
+              {pinLoading ? 'Checking...' : 'Unlock'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
   );
 }

@@ -15,6 +15,38 @@ export function getDeviceState(reading: { timestamp?: string } | null): 'online'
   return age <= LIVE_THRESHOLD_MS ? 'online' : 'offline';
 }
 
+export async function unlockDevice(pin: string): Promise<{ ok: boolean; message?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/device/auth`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify({ pin }),
+    });
+    return res.json();
+  } catch {
+    return { ok: false, message: 'Connection error' };
+  }
+}
+
+export async function lockDevice(): Promise<void> {
+  try {
+    await fetch(`${API_BASE}/device/lock`, {
+      method: 'POST',
+      headers: { ...getAuthHeader() },
+    });
+  } catch { /* ignore */ }
+}
+
+export async function fetchDeviceStatus(): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/device/status`, { headers: getAuthHeader() });
+    const data = await res.json();
+    return data.unlocked === true;
+  } catch {
+    return false;
+  }
+}
+
 export async function fetchLatest() {
   try {
     const res = await fetch(`${API_BASE}/latest`, { headers: getAuthHeader() });

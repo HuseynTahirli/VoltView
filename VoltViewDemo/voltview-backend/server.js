@@ -3,8 +3,12 @@ const cors = require("cors");
 const bcrypt = require("bcrypt");
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 const supabase = require("./supabaseClient");
 const { sendAlertEmail } = require("./mailer");
+
+// ── Device Session Store (in-memory) ────────────────────────────────
+const deviceSessions = new Set();
 
 const app = express();
 const PORT = 4000;
@@ -152,6 +156,48 @@ async function checkThresholds(reading) {
   }
 }
 
+// ── Helper: parse device_session cookie ─────────────────────────────
+function getDeviceSession(req) {
+  const cookieHeader = req.headers.cookie || '';
+  const match = cookieHeader.match(/device_session=([^;]+)/);
+  return match ? match[1] : null;
+}
+
+// ================== DEVICE AUTH ==================
+app.post("/api/device/auth", (req, res) => {
+  const { pin } = req.body;
+  const expectedPin = process.env.DEVICE_PIN;
+
+  if (!expectedPin) {
+    return res.status(500).json({ ok: false, message: 'DEVICE_PIN not configured on server.' });
+  }
+  if (!pin || pin !== expectedPin) {
+    return res.status(401).json({ ok: false, message: 'Invalid device PIN.' });
+  }
+
+  const token = crypto.randomBytes(32).toString('hex');
+  deviceSessions.add(token);
+
+  // Set cookie — 7 day expiry
+  res.setHeader('Set-Cookie', `device_session=${token}; Path=/; Max-Age=${7 * 24 * 60 * 60}; HttpOnly; SameSite=Lax`);
+  console.log(`🔓 Device session granted.`);
+  res.json({ ok: true });
+});
+
+app.post("/api/device/lock", (req, res) => {
+  const token = getDeviceSession(req);
+  if (token) deviceSessions.delete(token);
+  res.setHeader('Set-Cookie', 'device_session=; Path=/; Max-Age=0');
+  console.log(`🔒 Device session revoked.`);
+  res.json({ ok: true });
+});
+
+app.get("/api/device/status", (req, res) => {
+  const token = getDeviceSession(req);
+  const unlocked = token ? deviceSessions.has(token) : false;
+  res.json({ unlocked });
+});
+
 // ================== THRESHOLDS API ==================
 app.get("/api/thresholds", verifyToken, async (req, res) => {
   const { data, error } = await supabase.from('thresholds').select('*');
@@ -178,6 +224,12 @@ app.post("/api/thresholds", verifyToken, async (req, res) => {
 
 // ================== RETURN LATEST READING ==================
 app.get("/api/latest", verifyToken, async (req, res) => {
+  // Check device session — if no valid session, return locked status
+  const token = getDeviceSession(req);
+  if (!token || !deviceSessions.has(token)) {
+    return res.json({ deviceLocked: true });
+  }
+
   const { data, error } = await supabase
     .from('readings')
     .select('*')
