@@ -193,25 +193,6 @@ app.get("/api/devices", verifyToken, async (req, res) => {
     .order('created_at', { ascending: true });
 
   if (error) return res.status(500).json({ error: "Failed to fetch devices" });
-
-  // Auto-create legacy device if this user has absolutely no devices
-  if (!data || data.length === 0) {
-    const { data: newDevice, error: createErr } = await supabase
-      .from('devices')
-      .insert([{
-        user_id: req.user.id,
-        device_name: 'Main Hardware',
-        device_key: 'esp32-legacy-default',
-        data_mode: 'device'
-      }])
-      .select()
-      .single();
-      
-    if (!createErr && newDevice) {
-      return res.json([newDevice]);
-    }
-  }
-
   res.json(data || []);
 });
 
