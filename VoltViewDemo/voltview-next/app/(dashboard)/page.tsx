@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { fetchLatest, fetchReadings, fetchWeekReadings, getDeviceState, unlockDevice, lockDevice } from '@/lib/api';
+import { fetchLatest, fetchReadings, fetchWeekReadings, fetchDevices, createDevice, updateDeviceMode, generateDemoReading, getDeviceState } from '@/lib/api';
+import { Toggle, GooeyFilter } from '@/components/ui/liquid-toggle';
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
 } from 'recharts';
@@ -16,6 +17,7 @@ type Reading = {
   pf?: number;
 };
 type DeviceState = 'online' | 'offline' | 'none';
+type Device = { id: string; device_name: string; device_key: string; location?: string; data_mode: string };
 
 function fmtTime(ts: string) {
   return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -27,17 +29,20 @@ function fmtFull(ts: string) {
 const ChartTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg px-3 py-2 text-xs" style={{ background: '#0a0a0a', border: '1px solid #2a2a2a', color: '#ccc' }}>
-      <p className="mb-1 text-[#555]">{label}</p>
+    <div className="rounded-lg px-3 py-2 text-xs shadow-xl"
+      style={{ background: 'rgba(8,8,14,0.97)', border: '1px solid rgba(255,255,255,0.09)', color: '#ccc' }}>
+      <p className="mb-1.5 text-[10px] uppercase tracking-wide" style={{ color: '#3a3a4a' }}>{label}</p>
       {payload.map((p: any) => (
-        <p key={p.dataKey} style={{ color: p.color }}>{p.name}: <strong>{p.value}</strong></p>
+        <p key={p.dataKey} style={{ color: p.color }}>
+          {p.name}: <strong style={{ color: '#e8e8e8' }}>{p.value}</strong>
+        </p>
       ))}
     </div>
   );
 };
 
 // Flat zero-line shown when device is offline / no data
-const ZERO_DATA = Array.from({ length: 12 }, (_, i) => ({
+const ZERO_DATA = Array.from({ length: 12 }, () => ({
   t: '', voltage: 0, current: 0, power: 0, pf: 0,
 }));
 
@@ -47,42 +52,63 @@ function MiniChart({
   data: any[]; dataKey: string; color: string; unit: string; name: string; offline?: boolean;
 }) {
   const chartData = offline || data.length < 2 ? ZERO_DATA : data;
-  const lineColor = offline || data.length < 2 ? '#2a2a2a' : color;
+  const lineColor = offline || data.length < 2 ? '#1e1e28' : color;
+  const hasData = !offline && data.length >= 2;
 
   return (
-    <div className="rounded-xl border p-4 sm:p-5" style={{ background: '#0a0a0a', borderColor: '#1a1a1a' }}>
+    <div className="rounded-xl border p-4 sm:p-5 transition-all duration-300 hover:border-white/[0.11]"
+      style={{
+        background: 'linear-gradient(145deg, rgba(255,255,255,0.028) 0%, rgba(255,255,255,0) 55%), #09090f',
+        borderColor: 'rgba(255,255,255,0.07)',
+      }}>
       <div className="flex items-center justify-between mb-4">
-        <span className="text-xs font-semibold text-[#888] uppercase tracking-wide">{name}</span>
-        <span className="text-xs text-[#555]">{unit}</span>
+        <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#4a4a5a' }}>{name}</span>
+        <span className="text-[10px] font-mono" style={{ color: '#30303e' }}>{unit}</span>
       </div>
-      <ResponsiveContainer width="100%" height={160}>
-        <LineChart data={chartData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1a1a1a" vertical={false} />
-          <XAxis
-            dataKey="t"
-            tick={{ fontSize: 9, fill: '#444' }}
-            tickLine={false}
-            axisLine={false}
-            interval="preserveStartEnd"
-          />
-          <YAxis
-            tick={{ fontSize: 10, fill: '#555' }}
-            tickLine={false}
-            axisLine={false}
-            width={40}
-          />
-          {!offline && data.length >= 2 && <Tooltip content={<ChartTooltip />} />}
-          <Line
-            type="monotone"
-            dataKey={dataKey}
-            stroke={lineColor}
-            strokeWidth={2}
-            dot={false}
-            name={name}
-            isAnimationActive={false}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      <div style={{ filter: hasData ? `drop-shadow(0 0 6px ${color}33)` : 'none' }}>
+        <ResponsiveContainer width="100%" height={155}>
+          <LineChart data={chartData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="2 5" stroke="rgba(255,255,255,0.035)" vertical={false} />
+            <XAxis
+              dataKey="t"
+              tick={{ fontSize: 8, fill: '#2e2e3a' }}
+              tickLine={false}
+              axisLine={false}
+              interval="preserveStartEnd"
+            />
+            <YAxis
+              tick={{ fontSize: 9, fill: '#36363f' }}
+              tickLine={false}
+              axisLine={false}
+              width={38}
+            />
+            {hasData && <Tooltip content={<ChartTooltip />} />}
+            <Line
+              type="monotone"
+              dataKey={dataKey}
+              stroke={lineColor}
+              strokeWidth={2.5}
+              dot={false}
+              name={name}
+              isAnimationActive={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+// ── Shared empty state component ─────────────────────────────────────────────
+function EmptyState({ title, sub }: { title: string; sub: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+      <div className="w-8 h-8 rounded-full mb-3 flex items-center justify-center"
+        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+        <span style={{ color: '#3a3a4a', fontSize: 14 }}>—</span>
+      </div>
+      <p className="text-sm font-medium mb-1" style={{ color: '#4a4a5a' }}>{title}</p>
+      <p className="text-xs max-w-xs" style={{ color: '#333340' }}>{sub}</p>
     </div>
   );
 }
@@ -94,61 +120,77 @@ export default function Dashboard() {
   const [weekReadings, setWeekReadings] = useState<Reading[]>([]);
   const [deviceState, setDeviceState] = useState<DeviceState>('none');
   const [initialLoad, setInitialLoad] = useState(true);
-  const [deviceLocked, setDeviceLocked] = useState(false);
-  const [showPinModal, setShowPinModal] = useState(false);
-  const [pin, setPin] = useState('');
-  const [pinError, setPinError] = useState('');
-  const [pinLoading, setPinLoading] = useState(false);
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string>('');
+  const [modeChanging, setModeChanging] = useState(false);
+  const [showAddDevice, setShowAddDevice] = useState(false);
+  const [newDeviceName, setNewDeviceName] = useState('');
+  const [newDeviceLocation, setNewDeviceLocation] = useState('');
+  const [addDeviceError, setAddDeviceError] = useState('');
+  const [addDeviceLoading, setAddDeviceLoading] = useState(false);
 
   const refresh = useCallback(async () => {
-    const [data, hist] = await Promise.all([
-      fetchLatest(),
-      fetchReadings(20),
-    ]);
-
-    // If backend says device is locked, show locked state
-    if (data && data.deviceLocked === true) {
-      setDeviceLocked(true);
-      setDeviceState('offline');
+    if (!selectedDeviceId) {
       setLatest(null);
       setReadings([]);
       setChartReadings([]);
+      setWeekReadings([]);
+      setDeviceState('none');
       setInitialLoad(false);
       return;
     }
+    const deviceId = selectedDeviceId;
+    const selectedDevice = devices.find(d => d.id === deviceId);
+    const isLegacyHardware = selectedDevice?.device_key === 'esp32-legacy-default';
+    const dataMode = selectedDevice?.data_mode ?? 'simulation';
+    // Both real hardware (Legacy) and user devices in Device Mode use hardware readings
+    // with a strict recent-data window. Simulation Mode uses generated readings with a
+    // 7-day window so historical demo data always shows.
+    const readingSource = (isLegacyHardware || dataMode === 'device') ? 'hardware' : 'simulation';
+    const useStrictWindow = isLegacyHardware || dataMode === 'device';
 
-    setDeviceLocked(false);
-    const state = getDeviceState(data);
-    setDeviceState(state);
+    const [data, hist, week] = await Promise.all([
+      fetchLatest(deviceId, readingSource),
+      fetchReadings(20, deviceId, readingSource),
+      fetchWeekReadings(deviceId, readingSource),
+    ]);
 
     const arr = Array.isArray(hist) ? hist : [];
+    const weekArr = Array.isArray(week) ? week : [];
 
-    if (state === 'online') {
-      setLatest(data);
+    if (useStrictWindow) {
+      // Strict 15 s threshold — show nothing when not actively streaming
+      const state = getDeviceState(data);
+      setDeviceState(state);
+      if (state === 'online') {
+        setLatest(data);
+        setReadings(arr);
+        setChartReadings(arr);
+        setWeekReadings(weekArr);
+      } else {
+        setLatest(null);
+        setReadings([]);
+        setChartReadings([]);
+        setWeekReadings([]);
+      }
+    } else {
+      // Simulation Mode: 7-day window, always show historical readings
+      const latestReading: Reading | null =
+        data ?? (arr.length > 0 ? arr[arr.length - 1] : null);
+      let state: DeviceState = 'none';
+      if (latestReading?.timestamp) {
+        const ageMs = Date.now() - new Date(latestReading.timestamp).getTime();
+        state = ageMs <= 7 * 24 * 60 * 60 * 1000 ? 'online' : 'offline';
+      }
+      setDeviceState(state);
+      setLatest(latestReading);
       setReadings(arr);
       setChartReadings(arr);
-    } else {
-      setLatest(null);
-      setReadings([]);
-      setChartReadings([]);
+      setWeekReadings(weekArr);
     }
 
     setInitialLoad(false);
-  }, []);
-
-  const handleUnlock = async () => {
-    setPinLoading(true);
-    setPinError('');
-    const res = await unlockDevice(pin);
-    setPinLoading(false);
-    if (res.ok) {
-      setShowPinModal(false);
-      setPin('');
-      refresh();
-    } else {
-      setPinError(res.message || 'Invalid PIN');
-    }
-  };
+  }, [selectedDeviceId, devices]);
 
   useEffect(() => {
     refresh();
@@ -156,11 +198,29 @@ export default function Dashboard() {
     return () => clearInterval(id);
   }, [refresh]);
 
+  // For software/demo devices: insert a new reading every 5 s so the dashboard
+  // visibly updates during presentation. Never runs for ESP32 (Legacy).
   useEffect(() => {
-    fetchWeekReadings().then(d => setWeekReadings(Array.isArray(d) ? d : []));
+    if (!selectedDeviceId) return;
+    const selectedDevice = devices.find(d => d.id === selectedDeviceId);
+    if (!selectedDevice || selectedDevice.device_key === 'esp32-legacy-default' || selectedDevice.data_mode !== 'simulation') return;
+
+    const id = setInterval(async () => {
+      await generateDemoReading(selectedDeviceId);
+      refresh();
+    }, 5000);
+
+    return () => clearInterval(id);
+  }, [selectedDeviceId, devices, refresh]);
+
+  useEffect(() => {
+    fetchDevices().then((list: Device[]) => {
+      setDevices(Array.isArray(list) ? list : []);
+      if (list?.length > 0) setSelectedDeviceId(list[0].id);
+    });
   }, []);
 
-  // Metric calculations
+  // ── Metric calculations ── (unchanged)
   const voltage = latest?.voltage ?? 0;
   const current = latest?.current ?? 0;
   const power = latest?.power ?? 0;
@@ -176,15 +236,43 @@ export default function Dashboard() {
     ? todayReadings.reduce((s, r) => s + (r.energy ?? 0), 0)
     : 0;
 
-  const indicatorColor = deviceLocked ? '#ef4444' : deviceState === 'online' ? '#4ade80' : deviceState === 'offline' ? '#facc15' : '#555';
-  const indicatorBorder = deviceLocked ? 'rgba(239,68,68,0.4)' : deviceState === 'online' ? 'rgba(74,222,128,0.4)' : deviceState === 'offline' ? 'rgba(250,204,21,0.4)' : '#2a2a2a';
-  const indicatorLabel = deviceLocked ? 'Device Locked' : deviceState === 'online' ? 'Device Online' : deviceState === 'offline' ? 'Device Offline' : 'No Device Connected';
+  // ── Derived device identity — must come before status chip and empty-state logic ──
+  const selectedDevice = devices.find(d => d.id === selectedDeviceId);
+  const isLegacy = selectedDevice?.device_key === 'esp32-legacy-default';
+  const inDeviceMode = !isLegacy && selectedDevice?.data_mode === 'device';
+
+  // Status chip appearance — simulation devices get cyan styling and distinct label
+  // so they are never confused with real hardware being online.
+  const isSimMode = !isLegacy && selectedDevice?.data_mode === 'simulation';
+  const isSimActive = isSimMode && deviceState === 'online';
+
+  const indicatorColor = isSimActive ? '#22d3ee'
+    : deviceState === 'online'  ? '#4ade80'
+    : deviceState === 'offline' ? '#facc15'
+    : '#2a2a35';
+  const indicatorBg = isSimActive ? 'rgba(34,211,238,0.07)'
+    : deviceState === 'online'  ? 'rgba(74,222,128,0.07)'
+    : 'rgba(255,255,255,0.03)';
+  const indicatorBorder = isSimActive ? 'rgba(34,211,238,0.22)'
+    : deviceState === 'online'  ? 'rgba(74,222,128,0.3)'
+    : deviceState === 'offline' ? 'rgba(250,204,21,0.25)'
+    : 'rgba(255,255,255,0.06)';
+  const indicatorGlow = isSimActive ? '0 0 14px rgba(34,211,238,0.08)'
+    : deviceState === 'online'  ? '0 0 14px rgba(74,222,128,0.08)'
+    : 'none';
+  const indicatorTextColor = isSimActive ? '#67e8f9'
+    : deviceState === 'online'  ? '#6ee7a0'
+    : '#555';
+  const indicatorLabel = isSimActive ? 'Simulation Active'
+    : deviceState === 'online'  ? 'Device Online'
+    : deviceState === 'offline' ? 'Device Offline'
+    : 'No Device';
 
   const tiles = [
     { label: "Today's Usage", value: `${todayUsage.toFixed(3)} kWh`, tip: "Total energy consumed today" },
-    { label: 'Peak Power', value: `${peakPower.toFixed(1)} W`, tip: "Highest power reading in last 20 samples" },
-    { label: 'Avg Voltage', value: `${avgVoltage.toFixed(1)} V`, tip: "Average voltage across last 20 readings" },
-    { label: 'Current', value: `${current.toFixed(2)} A`, tip: "Latest current reading" },
+    { label: 'Peak Power',    value: `${peakPower.toFixed(1)} W`,   tip: "Highest power reading in last 20 samples" },
+    { label: 'Avg Voltage',   value: `${avgVoltage.toFixed(1)} V`,  tip: "Average voltage across last 20 readings" },
+    { label: 'Current',       value: `${current.toFixed(2)} A`,     tip: "Latest current reading" },
   ];
 
   // Chart data: sorted oldest→newest so line always flows left to right
@@ -195,11 +283,51 @@ export default function Dashboard() {
       t: fmtTime(r.timestamp),
       voltage: parseFloat((r.voltage ?? 0).toFixed(1)),
       current: parseFloat((r.current ?? 0).toFixed(2)),
-      power: parseFloat((r.power ?? 0).toFixed(1)),
-      pf: parseFloat((r.pf ?? 0).toFixed(2)),
+      power:   parseFloat((r.power   ?? 0).toFixed(1)),
+      pf:      parseFloat((r.pf      ?? 0).toFixed(2)),
     }));
 
   const deviceOffline = deviceState !== 'online';
+
+  const handleAddDevice = async () => {
+    if (!newDeviceName.trim()) { setAddDeviceError('Device name is required.'); return; }
+    setAddDeviceError('');
+    setAddDeviceLoading(true);
+    try {
+      const res = await createDevice(newDeviceName.trim(), newDeviceLocation.trim() || undefined);
+      if (res.ok && res.device) {
+        const list: Device[] = await fetchDevices();
+        setDevices(Array.isArray(list) ? list : []);
+        setSelectedDeviceId(res.device.id);
+        setShowAddDevice(false);
+        setNewDeviceName('');
+        setNewDeviceLocation('');
+      } else {
+        setAddDeviceError(res.error || 'Failed to create device.');
+      }
+    } catch {
+      setAddDeviceError('Connection error.');
+    } finally {
+      setAddDeviceLoading(false);
+    }
+  };
+
+  const handleModeChange = async (newMode: 'simulation' | 'device') => {
+    if (!selectedDeviceId || modeChanging) return;
+    const selectedDevice = devices.find(d => d.id === selectedDeviceId);
+    if (!selectedDevice || selectedDevice.data_mode === newMode) return;
+    setModeChanging(true);
+    // Immediately clear stale data so old readings don't show for the new mode
+    setLatest(null);
+    setReadings([]);
+    setChartReadings([]);
+    setWeekReadings([]);
+    const res = await updateDeviceMode(selectedDeviceId, newMode);
+    if (res.ok) {
+      setDevices(prev => prev.map(d => d.id === selectedDeviceId ? { ...d, data_mode: newMode } : d));
+    }
+    setModeChanging(false);
+  };
 
   // Last week grouped by day
   const weekByDay = weekReadings.reduce<Record<string, Reading[]>>((acc, r) => {
@@ -209,78 +337,189 @@ export default function Dashboard() {
     return acc;
   }, {});
 
+  // ── Context-aware empty-state messages ────────────────────────────────────
+  const readingsEmpty = !selectedDeviceId
+    ? { title: 'No device selected', sub: 'Choose a device from the dropdown above.' }
+    : isLegacy
+    ? { title: 'Hardware offline', sub: 'No data received from the ESP32 in the last 15 seconds.' }
+    : inDeviceMode
+    ? { title: 'No hardware signal', sub: 'Device Mode is active. Connect hardware using this device key or switch to Simulation.' }
+    : { title: 'No readings yet', sub: 'Readings will appear here as data is collected.' };
+
+  const weekEmpty = !selectedDeviceId
+    ? { title: 'No device selected', sub: 'Choose a device to view weekly statistics.' }
+    : isLegacy
+    ? { title: 'No historical data', sub: 'Hardware must be streaming to record readings.' }
+    : inDeviceMode
+    ? { title: 'No hardware data', sub: 'No hardware readings found for the past 7 days.' }
+    : { title: 'No weekly data', sub: 'Simulation data will accumulate here over time.' };
+
+  // Shared control chip style
+  const chipStyle: React.CSSProperties = {
+    background: 'rgba(255,255,255,0.04)',
+    border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: 8,
+    color: '#999',
+    fontSize: 12,
+    outline: 'none',
+    cursor: 'pointer',
+    padding: '6px 12px',
+    lineHeight: 1,
+    display: 'flex',
+    alignItems: 'center',
+    fontWeight: 500,
+  };
+
+  const SectionHeading = ({ children }: { children: React.ReactNode }) => (
+    <div className="flex items-center gap-2">
+      <div className="w-0.5 h-3 rounded-full" style={{ background: 'rgba(59,130,246,0.5)' }} />
+      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#4a4a5a' }}>
+        {children}
+      </span>
+    </div>
+  );
+
   return (
-    <>
-      <div className="py-4 sm:py-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4 sm:mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold">Dashboard</h1>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium"
-            style={{ background: '#111', border: `1px solid ${indicatorBorder}` }}>
-            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: indicatorColor }} />
-            <span className="text-[#aaa]">{indicatorLabel}</span>
-          </div>
-          {deviceLocked ? (
-            <button
-              onClick={() => { setShowPinModal(true); setPinError(''); setPin(''); }}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-colors"
-              style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: '#ef4444' }}>
-              🔒 Unlock
-            </button>
-          ) : (
-            <button
-              onClick={async () => { await lockDevice(); refresh(); }}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors"
-              style={{ background: '#111', border: '1px solid #222', color: '#555' }}>
-              🔓 Lock
-            </button>
+    <div className="py-4 sm:py-6 relative">
+      <GooeyFilter />
+
+      {/* Ambient background glow */}
+      <div aria-hidden="true" className="pointer-events-none absolute top-0 right-0 -z-10 overflow-hidden"
+        style={{ width: '55%', height: 320 }}>
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse at 80% 0%, rgba(59,130,246,0.055) 0%, transparent 68%)',
+        }} />
+      </div>
+
+      {/* ── Header ──────────────────────────────────────────────────────────── */}
+      <div className="flex items-start sm:items-center justify-between mb-6 gap-3 flex-col sm:flex-row">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight" style={{ color: '#f0f0f0' }}>Dashboard</h1>
+          {selectedDevice && (
+            <p className="text-[11px] mt-0.5" style={{ color: '#3a3a4a' }}>
+              {selectedDevice.device_name}{selectedDevice.location ? ` · ${selectedDevice.location}` : ''}
+            </p>
           )}
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Device dropdown */}
+          {devices.length > 0 && (
+            <select
+              value={selectedDeviceId}
+              onChange={e => setSelectedDeviceId(e.target.value)}
+              className="text-xs font-medium transition-colors"
+              style={{ ...chipStyle, cursor: 'pointer', appearance: 'none', WebkitAppearance: 'none',
+                paddingRight: 28, backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23555' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat', backgroundPosition: 'right 10px center' }}
+            >
+              {devices.map(d => (
+                <option key={d.id} value={d.id}>{d.device_name}</option>
+              ))}
+            </select>
+          )}
+
+          {/* Mode toggle — user-created devices only */}
+          {selectedDeviceId && (() => {
+            const sel = devices.find(d => d.id === selectedDeviceId);
+            if (!sel) return null;
+            if (sel.device_key === 'esp32-legacy-default') {
+              return (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
+                  style={{ background: 'rgba(59,130,246,0.07)', border: '1px solid rgba(59,130,246,0.18)' }}>
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#3b82f6' }} />
+                  <span className="text-[11px] font-medium" style={{ color: '#60a5fa' }}>Hardware only</span>
+                </div>
+              );
+            }
+            return (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-opacity"
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  opacity: modeChanging ? 0.45 : 1,
+                }}>
+                <span className="text-[11px] font-medium" style={{ color: sel.data_mode === 'simulation' ? '#10b981' : '#444' }}>
+                  Simulation
+                </span>
+                <Toggle
+                  checked={sel.data_mode === 'simulation'}
+                  onCheckedChange={(c) => handleModeChange(c ? 'simulation' : 'device')}
+                  variant="success"
+                  disabled={modeChanging}
+                />
+              </div>
+            );
+          })()}
+
+          {/* Add Device */}
+          <button
+            type="button"
+            onClick={() => { setShowAddDevice(true); setAddDeviceError(''); }}
+            className="text-xs font-medium transition-all hover:border-white/[0.16] hover:text-white"
+            style={{ ...chipStyle }}
+          >
+            + Add Device
+          </button>
+
+          {/* Status chip — fixed min-width prevents layout shift when text changes */}
+          <div className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+            style={{
+              minWidth: 152,
+              background: indicatorBg,
+              border: `1px solid ${indicatorBorder}`,
+              boxShadow: indicatorGlow,
+            }}>
+            <span
+              className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${deviceState === 'online' ? 'animate-pulse' : ''}`}
+              style={{ background: indicatorColor }}
+            />
+            <span style={{ color: indicatorTextColor }}>{indicatorLabel}</span>
+          </div>
         </div>
       </div>
 
-      {/* Device Locked Banner */}
-      {deviceLocked && (
-        <div className="rounded-xl border p-6 mb-6 text-center" style={{ background: 'rgba(239,68,68,0.05)', borderColor: 'rgba(239,68,68,0.2)' }}>
-          <div className="text-4xl mb-3">🔒</div>
-          <div className="text-white font-semibold mb-1">Live Data Locked</div>
-          <div className="text-sm text-[#888] mb-4">Live readings are only available on the authorized device. Enter the device PIN to unlock.</div>
-          <button
-            onClick={() => { setShowPinModal(true); setPinError(''); setPin(''); }}
-            className="px-6 py-2.5 rounded-lg font-semibold text-sm"
-            style={{ background: '#ef4444', color: '#fff', border: 'none', cursor: 'pointer' }}>
-            Enter Device PIN
-          </button>
-        </div>
-      )}
-
-      {/* Metric tiles */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+      {/* ── KPI tiles ──────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-7">
         {tiles.map(({ label, value, tip }) => (
-          <div key={label} className="rounded-xl p-4 sm:p-5 border relative group"
-            style={{ background: '#0a0a0a', borderColor: '#1a1a1a' }}>
-            <div className="flex items-center gap-1 mb-1.5">
-              <span className="text-xs text-[#888] font-medium leading-tight">{label}</span>
-              <span className="relative cursor-default">
-                <span className="text-[10px] text-[#444] hover:text-[#888] transition-colors select-none">ⓘ</span>
-                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 w-36 text-center text-[10px] text-[#ccc] bg-[#111] border border-[#2a2a2a] rounded px-2 py-1 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10 whitespace-normal">
+          <div key={label}
+            className="rounded-xl p-4 sm:p-5 border relative group cursor-default transition-all duration-300 hover:border-white/[0.13]"
+            style={{
+              background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 60%), #09090f',
+              borderColor: 'rgba(255,255,255,0.07)',
+            }}>
+            {/* Top accent line — does not need overflow-hidden, stays within card padding */}
+            <div className="absolute top-0 left-6 right-6 h-px"
+              style={{ background: 'linear-gradient(to right, transparent, rgba(59,130,246,0.18), transparent)' }} />
+            <div className="flex items-center gap-1.5 mb-2.5">
+              <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#4a4a5a' }}>
+                {label}
+              </span>
+              <span className="relative">
+                <span className="text-[10px] select-none cursor-default" style={{ color: '#2e2e3a' }}>ⓘ</span>
+                {/* z-50 ensures tooltip renders above sibling cards; no overflow-hidden parent clips it */}
+                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-44 text-center text-[10px] rounded-lg px-2.5 py-1.5 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150 z-50 whitespace-normal shadow-2xl"
+                  style={{ background: 'rgba(8,8,14,0.98)', border: '1px solid rgba(255,255,255,0.1)', color: '#aaa' }}>
                   {tip}
                 </span>
               </span>
             </div>
-            <div className="text-xl sm:text-2xl font-bold text-white">{value}</div>
+            <div className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ color: '#f0f0f0', letterSpacing: '-0.02em' }}>
+              {value}
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Live charts — always rendered, always fed from real Supabase history */}
-      <div className="mb-6">
+      {/* ── Live Trends ─────────────────────────────────────────────────────── */}
+      <div className="mb-7">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-[#888] uppercase tracking-wide">Live Trends</h2>
+          <SectionHeading>Live Trends</SectionHeading>
           {deviceState === 'online' && (
-            <span className="text-[10px] text-[#4ade80] flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4ade80] animate-pulse inline-block" />
-              Live · updates every 5s
+            <span className="text-[10px] flex items-center gap-1.5" style={{ color: '#3a8a5a' }}>
+              <span className="w-1.5 h-1.5 rounded-full animate-pulse inline-block" style={{ background: '#4ade80' }} />
+              Live · 5s
             </span>
           )}
         </div>
@@ -289,53 +528,62 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {['Power', 'Voltage', 'Current'].map(n => (
               <div key={n} className="rounded-xl border p-4 animate-pulse"
-                style={{ background: '#0a0a0a', borderColor: '#1a1a1a', height: 220 }}>
-                <div className="h-3 w-16 rounded mb-3" style={{ background: '#1a1a1a' }} />
-                <div className="h-40 rounded" style={{ background: '#111' }} />
+                style={{ background: '#09090f', borderColor: 'rgba(255,255,255,0.06)', height: 220 }}>
+                <div className="h-2 w-14 rounded-full mb-4" style={{ background: 'rgba(255,255,255,0.06)' }} />
+                <div className="h-36 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)' }} />
               </div>
             ))}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <MiniChart data={chartData} dataKey="power" color="#3b82f6" unit="W" name="Power" offline={deviceOffline} />
-            <MiniChart data={chartData} dataKey="voltage" color="#facc15" unit="V" name="Voltage" offline={deviceOffline} />
-            <MiniChart data={chartData} dataKey="current" color="#4ade80" unit="A" name="Current" offline={deviceOffline} />
+            <MiniChart data={chartData} dataKey="power"   color="#3b82f6" unit="W" name="Power"   offline={deviceOffline} />
+            <MiniChart data={chartData} dataKey="voltage" color="#a78bfa" unit="V" name="Voltage" offline={deviceOffline} />
+            <MiniChart data={chartData} dataKey="current" color="#34d399" unit="A" name="Current" offline={deviceOffline} />
           </div>
         )}
       </div>
 
-      {/* Live readings table */}
-      <div className="rounded-xl border overflow-hidden mb-6" style={{ background: '#0a0a0a', borderColor: '#1a1a1a' }}>
-        <div className="px-4 sm:px-5 py-3 border-b flex items-center justify-between" style={{ borderColor: '#1a1a1a' }}>
-          <span className="text-sm font-semibold text-white">Live Readings</span>
+      {/* ── Live Readings table ──────────────────────────────────────────────── */}
+      <div className="rounded-xl border overflow-hidden mb-7 transition-all duration-300 hover:border-white/[0.11]"
+        style={{
+          background: 'linear-gradient(145deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0) 50%), #09090f',
+          borderColor: 'rgba(255,255,255,0.07)',
+        }}>
+        <div className="px-4 sm:px-5 py-3.5 border-b flex items-center justify-between"
+          style={{ borderColor: 'rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.015)' }}>
+          <SectionHeading>Live Readings</SectionHeading>
           {deviceState === 'online' && (
-            <span className="text-[10px] text-[#4ade80] flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4ade80] animate-pulse inline-block" />
+            <span className="text-[10px] flex items-center gap-1.5" style={{ color: '#3a8a5a' }}>
+              <span className="w-1.5 h-1.5 rounded-full animate-pulse inline-block" style={{ background: '#4ade80' }} />
               Updating every 5s
             </span>
           )}
         </div>
         {readings.length === 0 ? (
-          <div className="text-center text-[#555] py-10 text-sm">No device connected</div>
+          <EmptyState title={readingsEmpty.title} sub={readingsEmpty.sub} />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[500px]">
               <thead>
-                <tr style={{ background: '#111', borderBottom: '1px solid #1a1a1a' }}>
+                <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                   {['Date & Time', 'Voltage (V)', 'Current (A)', 'Power (W)', 'Freq (Hz)', 'PF'].map(h => (
-                    <th key={h} className="text-left px-3 sm:px-4 py-2 text-[#888] text-xs font-medium uppercase tracking-wide">{h}</th>
+                    <th key={h} className="text-left px-4 sm:px-5 py-2.5 text-[10px] font-semibold uppercase tracking-widest"
+                      style={{ color: '#3a3a4a' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {[...readings].reverse().map(r => (
-                  <tr key={r.id} className="border-b hover:bg-[#0d0d0d] transition-colors" style={{ borderColor: '#111' }}>
-                    <td className="px-3 sm:px-4 py-2.5 text-[#ccc]">{fmtFull(r.timestamp)}</td>
-                    <td className="px-3 sm:px-4 py-2.5 text-[#ccc]">{r.voltage?.toFixed(1)}</td>
-                    <td className="px-3 sm:px-4 py-2.5 text-[#ccc]">{r.current?.toFixed(2)}</td>
-                    <td className="px-3 sm:px-4 py-2.5 text-[#ccc]">{r.power?.toFixed(1)}</td>
-                    <td className="px-3 sm:px-4 py-2.5 text-[#555]">{r.frequency?.toFixed(1) ?? '—'}</td>
-                    <td className="px-3 sm:px-4 py-2.5 text-[#555]">{r.pf?.toFixed(2) ?? '—'}</td>
+                  <tr key={r.id} className="transition-colors"
+                    style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                    <td className="px-4 sm:px-5 py-3 text-xs" style={{ color: '#888' }}>{fmtFull(r.timestamp)}</td>
+                    <td className="px-4 sm:px-5 py-3 text-xs font-mono" style={{ color: '#ccc' }}>{r.voltage?.toFixed(1)}</td>
+                    <td className="px-4 sm:px-5 py-3 text-xs font-mono" style={{ color: '#ccc' }}>{r.current?.toFixed(2)}</td>
+                    <td className="px-4 sm:px-5 py-3 text-xs font-mono" style={{ color: '#ccc' }}>{r.power?.toFixed(1)}</td>
+                    <td className="px-4 sm:px-5 py-3 text-xs font-mono" style={{ color: '#3a3a4a' }}>{r.frequency?.toFixed(1) ?? '—'}</td>
+                    <td className="px-4 sm:px-5 py-3 text-xs font-mono" style={{ color: '#3a3a4a' }}>{r.pf?.toFixed(2) ?? '—'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -344,36 +592,45 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Last week section */}
-      <div className="rounded-xl border overflow-hidden" style={{ background: '#0a0a0a', borderColor: '#1a1a1a' }}>
-        <div className="px-4 sm:px-5 py-3 border-b" style={{ borderColor: '#1a1a1a' }}>
-          <span className="text-sm font-semibold text-white">Last 7 Days</span>
-          <span className="text-xs text-[#555] ml-2">Daily averages</span>
+      {/* ── Last 7 Days ──────────────────────────────────────────────────────── */}
+      <div className="rounded-xl border overflow-hidden transition-all duration-300 hover:border-white/[0.11]"
+        style={{
+          background: 'linear-gradient(145deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0) 50%), #09090f',
+          borderColor: 'rgba(255,255,255,0.07)',
+        }}>
+        <div className="px-4 sm:px-5 py-3.5 border-b flex items-center gap-2"
+          style={{ borderColor: 'rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.015)' }}>
+          <SectionHeading>Last 7 Days</SectionHeading>
+          <span className="text-[10px]" style={{ color: '#2e2e3a' }}>· daily averages</span>
         </div>
         {Object.keys(weekByDay).length === 0 ? (
-          <div className="text-center text-[#555] py-8 text-sm">No data for the past week</div>
+          <EmptyState title={weekEmpty.title} sub={weekEmpty.sub} />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[400px]">
               <thead>
-                <tr style={{ background: '#111', borderBottom: '1px solid #1a1a1a' }}>
+                <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                   {['Date', 'Readings', 'Avg Voltage (V)', 'Avg Power (W)', 'Total Energy (kWh)'].map(h => (
-                    <th key={h} className="text-left px-3 sm:px-4 py-2 text-[#888] text-xs font-medium uppercase tracking-wide">{h}</th>
+                    <th key={h} className="text-left px-4 sm:px-5 py-2.5 text-[10px] font-semibold uppercase tracking-widest"
+                      style={{ color: '#3a3a4a' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {Object.entries(weekByDay).sort(([a], [b]) => b.localeCompare(a)).map(([day, rows]) => {
-                  const avgV = rows.reduce((s, r) => s + (r.voltage ?? 0), 0) / rows.length;
-                  const avgP = rows.reduce((s, r) => s + (r.power ?? 0), 0) / rows.length;
-                  const totalE = rows.reduce((s, r) => s + (r.energy ?? 0), 0);
+                  const avgV  = rows.reduce((s, r) => s + (r.voltage ?? 0), 0) / rows.length;
+                  const avgP  = rows.reduce((s, r) => s + (r.power   ?? 0), 0) / rows.length;
+                  const totalE = rows.reduce((s, r) => s + (r.energy  ?? 0), 0);
                   return (
-                    <tr key={day} className="border-b hover:bg-[#0d0d0d] transition-colors" style={{ borderColor: '#111' }}>
-                      <td className="px-3 sm:px-4 py-2.5 text-[#ccc] font-medium">{day}</td>
-                      <td className="px-3 sm:px-4 py-2.5 text-[#555]">{rows.length}</td>
-                      <td className="px-3 sm:px-4 py-2.5 text-[#ccc]">{avgV.toFixed(1)}</td>
-                      <td className="px-3 sm:px-4 py-2.5 text-[#ccc]">{avgP.toFixed(1)}</td>
-                      <td className="px-3 sm:px-4 py-2.5 text-[#ccc]">{totalE.toFixed(3)}</td>
+                    <tr key={day} className="transition-colors"
+                      style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                      <td className="px-4 sm:px-5 py-3 text-xs font-medium" style={{ color: '#bbb' }}>{day}</td>
+                      <td className="px-4 sm:px-5 py-3 text-xs" style={{ color: '#3a3a4a' }}>{rows.length}</td>
+                      <td className="px-4 sm:px-5 py-3 text-xs font-mono" style={{ color: '#ccc' }}>{avgV.toFixed(1)}</td>
+                      <td className="px-4 sm:px-5 py-3 text-xs font-mono" style={{ color: '#ccc' }}>{avgP.toFixed(1)}</td>
+                      <td className="px-4 sm:px-5 py-3 text-xs font-mono" style={{ color: '#ccc' }}>{totalE.toFixed(3)}</td>
                     </tr>
                   );
                 })}
@@ -382,48 +639,88 @@ export default function Dashboard() {
           </div>
         )}
       </div>
-    </div>
 
-    {/* PIN Modal */}
-    {showPinModal && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)' }}>
-        <div className="rounded-2xl p-8 w-full max-w-sm mx-4" style={{ background: '#0a0a0a', border: '1px solid #2a2a2a' }}>
-          <div className="text-center mb-6">
-            <div className="text-4xl mb-3">🔒</div>
-            <h2 className="text-lg font-bold text-white mb-1">Device PIN</h2>
-            <p className="text-sm text-[#666]">Enter the device PIN to access live readings.</p>
-          </div>
-          <input
-            type="password"
-            placeholder="Enter PIN"
-            value={pin}
-            onChange={e => setPin(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleUnlock()}
-            className="w-full rounded-lg px-4 py-3 text-sm mb-3 outline-none text-center tracking-widest text-lg font-mono"
-            style={{ background: '#111', border: '1px solid #333', color: '#fff' }}
-            autoFocus
-          />
-          {pinError && (
-            <p className="text-xs text-red-400 text-center mb-3">{pinError}</p>
-          )}
-          <div className="flex gap-3">
-            <button
-              onClick={() => setShowPinModal(false)}
-              className="flex-1 py-2.5 rounded-lg text-sm font-medium"
-              style={{ background: '#1a1a1a', color: '#888', border: '1px solid #2a2a2a', cursor: 'pointer' }}>
-              Cancel
-            </button>
-            <button
-              onClick={handleUnlock}
-              disabled={pinLoading || !pin}
-              className="flex-1 py-2.5 rounded-lg text-sm font-semibold"
-              style={{ background: pinLoading || !pin ? '#333' : '#4ade80', color: '#000', border: 'none', cursor: pinLoading || !pin ? 'not-allowed' : 'pointer' }}>
-              {pinLoading ? 'Checking...' : 'Unlock'}
-            </button>
+      {/* ── Add Device Modal ─────────────────────────────────────────────────── */}
+      {showAddDevice && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(2px)' }}
+          onClick={e => { if (e.target === e.currentTarget) setShowAddDevice(false); }}
+        >
+          <div className="w-full max-w-sm rounded-2xl p-6 space-y-4"
+            style={{
+              background: 'linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0) 60%), #0c0c14',
+              border: '1px solid rgba(255,255,255,0.09)',
+              boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
+            }}>
+            <div>
+              <h2 className="text-sm font-semibold tracking-wide" style={{ color: '#f0f0f0' }}>Add Device</h2>
+              <p className="text-[11px] mt-0.5" style={{ color: '#3a3a4a' }}>Register a new monitored device to your account.</p>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: '#4a4a5a' }}>
+                Device Name <span style={{ color: '#f87171' }}>*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Kitchen ESP32"
+                value={newDeviceName}
+                onChange={e => { setNewDeviceName(e.target.value); setAddDeviceError(''); }}
+                className="w-full text-sm rounded-lg px-3 py-2.5 outline-none transition-colors"
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', color: '#e0e0e0' }}
+                autoFocus
+              />
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: '#4a4a5a' }}>
+                Location <span style={{ color: '#2e2e3a' }}>(optional)</span>
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Kitchen"
+                value={newDeviceLocation}
+                onChange={e => setNewDeviceLocation(e.target.value)}
+                className="w-full text-sm rounded-lg px-3 py-2.5 outline-none transition-colors"
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', color: '#e0e0e0' }}
+              />
+            </div>
+
+            {addDeviceError && (
+              <div className="px-3 py-2 rounded-lg text-xs"
+                style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171' }}>
+                {addDeviceError}
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => { setShowAddDevice(false); setNewDeviceName(''); setNewDeviceLocation(''); setAddDeviceError(''); }}
+                className="flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#666', cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleAddDevice}
+                disabled={addDeviceLoading}
+                className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all"
+                style={{
+                  background: addDeviceLoading ? 'rgba(255,255,255,0.08)' : '#fff',
+                  color: addDeviceLoading ? '#444' : '#0a0a0f',
+                  border: 'none',
+                  cursor: addDeviceLoading ? 'not-allowed' : 'pointer',
+                  boxShadow: addDeviceLoading ? 'none' : '0 0 20px rgba(255,255,255,0.08)',
+                }}>
+                {addDeviceLoading ? 'Saving…' : 'Save Device'}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    )}
-    </>
+      )}
+    </div>
   );
 }

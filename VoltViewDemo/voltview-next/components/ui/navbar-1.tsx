@@ -13,11 +13,28 @@ const links = [
   { href: '/export', label: 'Export' },
 ];
 
+function getEmailFromToken(): string {
+  if (typeof document === 'undefined') return '';
+  const match = document.cookie.match(/(^|;\s*)voltview_token=([^;]+)/);
+  if (!match) return '';
+  try {
+    const payload = JSON.parse(atob(match[2].split('.')[1]));
+    return payload.email || '';
+  } catch {
+    return '';
+  }
+}
+
 export default function Navbar1() {
   const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+
+  useEffect(() => {
+    setUserEmail(getEmailFromToken());
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -32,6 +49,7 @@ export default function Navbar1() {
   }, [menuOpen]);
 
   const handleLogout = () => {
+    setUserEmail('');
     document.cookie = 'voltview_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     router.push('/login');
   };
@@ -83,6 +101,24 @@ export default function Navbar1() {
 
         {/* Desktop right */}
         <div className="hidden sm:flex items-center gap-2">
+          {userEmail && (
+            <span
+              title={userEmail}
+              className="text-xs font-medium px-3 py-1.5 rounded-full"
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.09)',
+                color: 'rgba(255,255,255,0.45)',
+                maxWidth: 200,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                display: 'block',
+              }}
+            >
+              {userEmail}
+            </span>
+          )}
           <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
@@ -141,7 +177,12 @@ export default function Navbar1() {
               </motion.div>
             ))}
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-              className="mt-2 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+              className="mt-2 pt-3 space-y-2" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+              {userEmail && (
+                <p className="px-1 text-xs text-center truncate" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                  {userEmail}
+                </p>
+              )}
               <button onClick={handleLogout}
                 className="w-full py-3 rounded-lg text-sm font-semibold cursor-pointer"
                 style={{ background: '#fff', color: '#000', border: 'none' }}>

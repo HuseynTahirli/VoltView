@@ -15,51 +15,9 @@ export function getDeviceState(reading: { timestamp?: string } | null): 'online'
   return age <= LIVE_THRESHOLD_MS ? 'online' : 'offline';
 }
 
-export async function unlockDevice(pin: string): Promise<{ ok: boolean; message?: string }> {
+export async function fetchDevices() {
   try {
-    const res = await fetch(`${API_BASE}/device/auth`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-      body: JSON.stringify({ pin }),
-    });
-    return res.json();
-  } catch {
-    return { ok: false, message: 'Connection error' };
-  }
-}
-
-export async function lockDevice(): Promise<void> {
-  try {
-    await fetch(`${API_BASE}/device/lock`, {
-      method: 'POST',
-      headers: { ...getAuthHeader() },
-    });
-  } catch { /* ignore */ }
-}
-
-export async function fetchDeviceStatus(): Promise<boolean> {
-  try {
-    const res = await fetch(`${API_BASE}/device/status`, { headers: getAuthHeader() });
-    const data = await res.json();
-    return data.unlocked === true;
-  } catch {
-    return false;
-  }
-}
-
-export async function fetchLatest() {
-  try {
-    const res = await fetch(`${API_BASE}/latest`, { headers: getAuthHeader() });
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  }
-}
-
-export async function fetchReadings(limit = 20) {
-  try {
-    const res = await fetch(`${API_BASE}/history?limit=${limit}`, { headers: getAuthHeader() });
+    const res = await fetch(`${API_BASE}/devices`, { headers: getAuthHeader() });
     if (!res.ok) return [];
     return res.json();
   } catch {
@@ -67,11 +25,60 @@ export async function fetchReadings(limit = 20) {
   }
 }
 
-export async function fetchExport(start: string, end: string) {
+export async function createDevice(device_name: string, location?: string) {
+  const res = await fetch(`${API_BASE}/devices`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+    body: JSON.stringify({ device_name, location: location || undefined }),
+  });
+  return res.json();
+}
+
+export async function generateDemoReading(deviceId: string) {
   try {
-    const res = await fetch(`${API_BASE}/export?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`, {
-      headers: getAuthHeader()
+    const res = await fetch(`${API_BASE}/demo/devices/${deviceId}/reading`, {
+      method: 'POST',
+      headers: getAuthHeader(),
     });
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchLatest(deviceId?: string, readingSource?: string) {
+  try {
+    const params = new URLSearchParams();
+    if (deviceId) params.set('device_id', deviceId);
+    if (readingSource) params.set('reading_source', readingSource);
+    const qs = params.toString() ? `?${params}` : '';
+    const res = await fetch(`${API_BASE}/latest${qs}`, { headers: getAuthHeader() });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchReadings(limit = 20, deviceId?: string, readingSource?: string) {
+  try {
+    const params = new URLSearchParams({ limit: String(limit) });
+    if (deviceId) params.set('device_id', deviceId);
+    if (readingSource) params.set('reading_source', readingSource);
+    const res = await fetch(`${API_BASE}/history?${params}`, { headers: getAuthHeader() });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchExport(start: string, end: string, deviceId?: string, readingSource?: string) {
+  try {
+    const params = new URLSearchParams({ start, end });
+    if (deviceId) params.set('device_id', deviceId);
+    if (readingSource) params.set('reading_source', readingSource);
+    const res = await fetch(`${API_BASE}/export?${params}`, { headers: getAuthHeader() });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'Export failed');
@@ -82,9 +89,13 @@ export async function fetchExport(start: string, end: string) {
   }
 }
 
-export async function fetchWeekReadings() {
+export async function fetchWeekReadings(deviceId?: string, readingSource?: string) {
   try {
-    const res = await fetch(`${API_BASE}/history/week`, { headers: getAuthHeader() });
+    const params = new URLSearchParams();
+    if (deviceId) params.set('device_id', deviceId);
+    if (readingSource) params.set('reading_source', readingSource);
+    const qs = params.toString() ? `?${params}` : '';
+    const res = await fetch(`${API_BASE}/history/week${qs}`, { headers: getAuthHeader() });
     if (!res.ok) return [];
     return res.json();
   } catch {
@@ -162,6 +173,31 @@ export async function saveEmailSettings(settings: { emailAlertsEnabled: boolean;
     return res.ok;
   } catch {
     return false;
+  }
+}
+
+export async function updateDeviceMode(deviceId: string, dataMode: 'simulation' | 'device') {
+  try {
+    const res = await fetch(`${API_BASE}/devices/${encodeURIComponent(deviceId)}/mode`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify({ data_mode: dataMode }),
+    });
+    return res.json();
+  } catch {
+    return { ok: false, error: 'Connection error.' };
+  }
+}
+
+export async function deleteDevice(deviceId: string) {
+  try {
+    const res = await fetch(`${API_BASE}/devices/${encodeURIComponent(deviceId)}`, {
+      method: 'DELETE',
+      headers: getAuthHeader(),
+    });
+    return res.json();
+  } catch {
+    return { ok: false, error: 'Connection error.' };
   }
 }
 

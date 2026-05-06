@@ -3,12 +3,8 @@ const cors = require("cors");
 const bcrypt = require("bcrypt");
 const fs = require("fs");
 const path = require("path");
-const crypto = require("crypto");
 const supabase = require("./supabaseClient");
 const { sendAlertEmail } = require("./mailer");
-
-// ── Device Session Store (in-memory) ────────────────────────────────
-const deviceSessions = new Set();
 
 const app = express();
 const PORT = 4000;
@@ -36,9 +32,8 @@ app.use("/reports", express.static(path.join(__dirname, "reports")));
 
 
 // ================== ESP32 DATA INGESTION ==================
-app.post("/api/esp32", (req, res) => {
-  const { voltage, current, power, energy, frequency, pf } = req.body;
-
+app.post("/api/esp32", async (req, res) => {
+  const { device_key, voltage, current, power, energy, frequency, pf } = req.body;
 
   if (voltage === undefined || current === undefined || power === undefined) {
     return res.status(400).json({
@@ -47,38 +42,47 @@ app.post("/api/esp32", (req, res) => {
     });
   }
 
+  // Resolve device — fall back to legacy device if key not provided
+  const resolvedKey = device_key || "esp32-legacy-default";
+  const { data: device, error: deviceErr } = await supabase
+    .from('devices')
+    .select('id')
+    .eq('device_key', resolvedKey)
+    .single();
+
+  if (deviceErr || !device) {
+    console.warn(`⚠️  Unknown device_key: ${resolvedKey}`);
+    return res.status(400).json({ ok: false, message: "Unknown device_key" });
+  }
+
   const timestamp = new Date().toISOString();
 
-
-  supabase
+  const { data: savedData, error } = await supabase
     .from('readings')
     .insert([{
+      device_id: device.id,
       voltage,
       current,
       power,
       energy: energy || null,
       frequency: frequency || null,
       pf: pf || null,
-      timestamp
+      timestamp,
+      reading_source: 'hardware',
     }])
     .select()
-    .single()
-    .then(({ data: savedData, error }) => {
-      if (error) {
-        console.error("Supabase Insert Error:", error);
-        return res.status(500).json({ ok: false, message: "Database error" });
-      }
+    .single();
 
-      console.log("📥 PZEM Reading Saved:", savedData);
+  if (error) {
+    console.error("Supabase Insert Error:", error);
+    return res.status(500).json({ ok: false, message: "Database error" });
+  }
 
+  console.log("📥 PZEM Reading Saved:", savedData);
 
-      checkThresholds({ voltage, current, power, frequency, pf });
+  checkThresholds({ voltage, current, power, frequency, pf });
 
-      res.json({
-        ok: true,
-        saved: savedData,
-      });
-    });
+  res.json({ ok: true, saved: savedData });
 });
 
 const alertCooldowns = {};
@@ -156,48 +160,6 @@ async function checkThresholds(reading) {
   }
 }
 
-// ── Helper: parse device_session cookie ─────────────────────────────
-function getDeviceSession(req) {
-  const cookieHeader = req.headers.cookie || '';
-  const match = cookieHeader.match(/device_session=([^;]+)/);
-  return match ? match[1] : null;
-}
-
-// ================== DEVICE AUTH ==================
-app.post("/api/device/auth", (req, res) => {
-  const { pin } = req.body;
-  const expectedPin = process.env.DEVICE_PIN;
-
-  if (!expectedPin) {
-    return res.status(500).json({ ok: false, message: 'DEVICE_PIN not configured on server.' });
-  }
-  if (!pin || pin !== expectedPin) {
-    return res.status(401).json({ ok: false, message: 'Invalid device PIN.' });
-  }
-
-  const token = crypto.randomBytes(32).toString('hex');
-  deviceSessions.add(token);
-
-  // Set cookie — 7 day expiry
-  res.setHeader('Set-Cookie', `device_session=${token}; Path=/; Max-Age=${7 * 24 * 60 * 60}; HttpOnly; SameSite=Lax`);
-  console.log(`🔓 Device session granted.`);
-  res.json({ ok: true });
-});
-
-app.post("/api/device/lock", (req, res) => {
-  const token = getDeviceSession(req);
-  if (token) deviceSessions.delete(token);
-  res.setHeader('Set-Cookie', 'device_session=; Path=/; Max-Age=0');
-  console.log(`🔒 Device session revoked.`);
-  res.json({ ok: true });
-});
-
-app.get("/api/device/status", (req, res) => {
-  const token = getDeviceSession(req);
-  const unlocked = token ? deviceSessions.has(token) : false;
-  res.json({ unlocked });
-});
-
 // ================== THRESHOLDS API ==================
 app.get("/api/thresholds", verifyToken, async (req, res) => {
   const { data, error } = await supabase.from('thresholds').select('*');
@@ -222,20 +184,165 @@ app.post("/api/thresholds", verifyToken, async (req, res) => {
   }
 });
 
-// ================== RETURN LATEST READING ==================
-app.get("/api/latest", verifyToken, async (req, res) => {
-  // Check device session — if no valid session, return locked status
-  const token = getDeviceSession(req);
-  if (!token || !deviceSessions.has(token)) {
-    return res.json({ deviceLocked: true });
+// ================== DEVICES API ==================
+app.get("/api/devices", verifyToken, async (req, res) => {
+  const { data, error } = await supabase
+    .from('devices')
+    .select('*')
+    .eq('user_id', req.user.id)
+    .order('created_at', { ascending: true });
+
+  if (error) return res.status(500).json({ error: "Failed to fetch devices" });
+  res.json(data || []);
+});
+
+app.post("/api/devices", verifyToken, async (req, res) => {
+  const { device_name, location } = req.body;
+
+  if (!device_name || !device_name.trim()) {
+    return res.status(400).json({ error: "device_name is required" });
   }
 
-  const { data, error } = await supabase
-    .from('readings')
-    .select('*')
-    .order('id', { ascending: false })
-    .limit(1);
+  const device_key = `voltview-${req.user.id.slice(0, 8)}-${Date.now()}`;
 
+  const { data, error } = await supabase
+    .from('devices')
+    .insert([{
+      user_id: req.user.id,
+      device_name: device_name.trim(),
+      location: location?.trim() || null,
+      device_key,
+    }])
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Failed to create device:", error.message);
+    return res.status(500).json({ error: "Failed to create device" });
+  }
+
+  res.json({ ok: true, device: data });
+});
+
+// ================== DEMO READING GENERATOR ==================
+app.post("/api/demo/devices/:deviceId/reading", verifyToken, async (req, res) => {
+  const { deviceId } = req.params;
+
+  // Confirm device belongs to the requesting user
+  const { data: device, error: deviceErr } = await supabase
+    .from('devices')
+    .select('id, device_name, device_key, user_id, data_mode')
+    .eq('id', deviceId)
+    .eq('user_id', req.user.id)
+    .single();
+
+  if (deviceErr || !device) {
+    return res.status(404).json({ error: "Device not found or access denied" });
+  }
+
+  if (device.device_key === 'esp32-legacy-default') {
+    return res.status(400).json({ error: "Demo readings are not allowed for the real ESP32 device" });
+  }
+
+  if (device.data_mode !== 'simulation') {
+    return res.status(400).json({ error: "Demo readings are disabled while device is in Device Mode" });
+  }
+
+  // Helpers
+  const rand = (min, max) => parseFloat((Math.random() * (max - min) + min).toFixed(4));
+
+  // Generate values based on device name
+  let voltage, current, power, energy, frequency, pf;
+  const name = device.device_name.toLowerCase();
+
+  if (name.includes('refrigerator') || name.includes('fridge')) {
+    voltage   = rand(119.5, 121.0);
+    current   = rand(1.0,   1.9);
+    power     = rand(120,   220);
+    energy    = rand(0.010, 0.050);
+    frequency = rand(59.95, 60.05);
+    pf        = rand(0.9970, 0.9985);
+  } else if (name.includes('tv') || name.includes('television')) {
+    voltage   = rand(119.5, 121.0);
+    current   = rand(0.5,   1.2);
+    power     = rand(60,    150);
+    energy    = rand(0.005, 0.030);
+    frequency = rand(59.95, 60.05);
+    pf        = rand(0.9450, 0.9530);
+  } else if (name.includes('washing') || name.includes('washer')) {
+    voltage   = rand(119.5, 121.0);
+    current   = rand(3.0,   8.0);
+    power     = rand(350,   950);
+    energy    = rand(0.020, 0.120);
+    frequency = rand(59.95, 60.05);
+    pf        = rand(0.9840, 0.9880);
+  } else {
+    // Generic fallback for any other software device
+    voltage   = rand(119.5, 121.0);
+    current   = rand(0.5,   3.0);
+    power     = rand(60,    360);
+    energy    = rand(0.005, 0.050);
+    frequency = rand(59.95, 60.05);
+    pf        = rand(0.9500, 0.9900);
+  }
+
+  const timestamp = new Date().toISOString();
+
+  const { data: savedData, error: insertErr } = await supabase
+    .from('readings')
+    .insert([{ device_id: device.id, voltage, current, power, energy, frequency, pf, timestamp, reading_source: 'simulation' }])
+    .select()
+    .single();
+
+  if (insertErr) {
+    console.error("Demo reading insert error:", insertErr.message);
+    return res.status(500).json({ error: "Failed to insert demo reading" });
+  }
+
+  console.log(`🎭 Demo reading saved [${device.device_name}]: ${power.toFixed(1)}W`);
+  res.json({ ok: true, reading: savedData });
+});
+
+// ================== OWNERSHIP HELPERS ==================
+// Returns UUIDs of all devices owned by userId.
+async function getOwnedDeviceIds(userId) {
+  const { data, error } = await supabase
+    .from('devices').select('id').eq('user_id', userId);
+  if (error) throw error;
+  return (data || []).map(d => d.id);
+}
+
+// Builds a scoped readings query restricted to devices the user owns.
+// If device_id is in the request it is validated against ownership first.
+// Optionally filters by reading_source ('simulation' | 'hardware') via query param.
+// Returns { query, forbidden } where query is null when the user has no devices.
+async function buildOwnedReadingsQuery(req, select = '*') {
+  let base = supabase.from('readings').select(select);
+
+  if (req.query.reading_source) {
+    base = base.eq('reading_source', req.query.reading_source);
+  }
+
+  if (req.query.device_id) {
+    const ownedIds = await getOwnedDeviceIds(req.user.id);
+    if (!ownedIds.includes(req.query.device_id)) {
+      return { query: null, forbidden: true };
+    }
+    return { query: base.eq('device_id', req.query.device_id), forbidden: false };
+  }
+
+  const ownedIds = await getOwnedDeviceIds(req.user.id);
+  if (ownedIds.length === 0) return { query: null, forbidden: false };
+  return { query: base.in('device_id', ownedIds), forbidden: false };
+}
+
+// ================== RETURN LATEST READING ==================
+app.get("/api/latest", verifyToken, async (req, res) => {
+  const { query, forbidden } = await buildOwnedReadingsQuery(req);
+  if (forbidden) return res.status(403).json({ error: "Access denied" });
+  if (!query)    return res.status(404).json({ error: "No data yet" });
+
+  const { data, error } = await query.order('id', { ascending: false }).limit(1);
   if (error) return res.status(500).json({ error: "Supabase error" });
   if (!data || data.length === 0) return res.status(404).json({ error: "No data yet" });
   res.json(data[0]);
@@ -244,8 +351,13 @@ app.get("/api/latest", verifyToken, async (req, res) => {
 // ================== RETURN FULL HISTORY ==================
 app.get("/api/history", verifyToken, async (req, res) => {
   const all = req.query.all === "true";
+
+  const { query: baseQuery, forbidden } = await buildOwnedReadingsQuery(req);
+  if (forbidden) return res.status(403).json({ error: "Access denied" });
+  if (!baseQuery) return res.json([]);
+
   if (all) {
-    const { data, error } = await supabase.from('readings').select('*').order('id', { ascending: true });
+    const { data, error } = await baseQuery.order('id', { ascending: true });
     if (error) return res.status(500).json({ error: "Supabase error" });
     return res.json(data);
   }
@@ -257,12 +369,9 @@ app.get("/api/history", verifyToken, async (req, res) => {
   let offset = parseInt(req.query.offset, 10) || 0;
   if (isNaN(offset) || offset < 0) offset = 0;
 
-  const { data, error } = await supabase
-    .from('readings')
-    .select('*')
+  const { data, error } = await baseQuery
     .order('id', { ascending: false })
     .range(offset, offset + limit - 1);
-
   if (error) return res.status(500).json({ error: "Supabase error" });
   res.json(data.reverse());
 });
@@ -284,9 +393,13 @@ app.get("/api/export", verifyToken, async (req, res) => {
     return res.status(400).json({ error: "start must be before or equal to end" });
   }
 
-  const { data, error } = await supabase
-    .from('readings')
-    .select('id, timestamp, voltage, current, power, energy, frequency, pf')
+  const { query: baseQuery, forbidden } = await buildOwnedReadingsQuery(
+    req, 'id, timestamp, voltage, current, power, energy, frequency, pf, device_id'
+  );
+  if (forbidden) return res.status(403).json({ error: "Access denied" });
+  if (!baseQuery) return res.json([]);
+
+  const { data, error } = await baseQuery
     .gte('timestamp', startISO)
     .lte('timestamp', endISO)
     .order('timestamp', { ascending: true });
@@ -295,20 +408,94 @@ app.get("/api/export", verifyToken, async (req, res) => {
     console.error("Export query error:", error.message);
     return res.status(500).json({ error: "Database error" });
   }
-
   res.json(data || []);
 });
 
 app.get("/api/history/week", verifyToken, async (req, res) => {
-  const now = new Date();
-  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const { data, error } = await supabase
-    .from('readings')
-    .select('*')
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  const { query: baseQuery, forbidden } = await buildOwnedReadingsQuery(req);
+  if (forbidden) return res.status(403).json({ error: "Access denied" });
+  if (!baseQuery) return res.json([]);
+
+  const { data, error } = await baseQuery
     .gte('timestamp', weekAgo)
     .order('timestamp', { ascending: true });
   if (error) return res.status(500).json({ error: "Supabase error" });
   res.json(data || []);
+});
+
+// ================== DELETE DEVICE ==================
+app.delete("/api/devices/:deviceId", verifyToken, async (req, res) => {
+  const { deviceId } = req.params;
+
+  const { data: device, error: findErr } = await supabase
+    .from('devices')
+    .select('id, device_key')
+    .eq('id', deviceId)
+    .eq('user_id', req.user.id)
+    .single();
+
+  if (findErr || !device) {
+    return res.status(404).json({ error: "Device not found or access denied" });
+  }
+
+  if (device.device_key === 'esp32-legacy-default') {
+    return res.status(400).json({ error: "Cannot delete the real ESP32 device" });
+  }
+
+  // readings.device_id has ON DELETE CASCADE — deleting this device
+  // will also delete all readings associated with it.
+  const { error: deleteErr } = await supabase
+    .from('devices').delete().eq('id', deviceId);
+
+  if (deleteErr) {
+    console.error("Failed to delete device:", deleteErr.message);
+    return res.status(500).json({ error: "Failed to delete device" });
+  }
+
+  console.log(`🗑️  Device deleted: ${deviceId}`);
+  res.json({ ok: true, message: "Device deleted" });
+});
+
+// ================== DEVICE MODE ==================
+app.patch("/api/devices/:deviceId/mode", verifyToken, async (req, res) => {
+  const { deviceId } = req.params;
+  const { data_mode } = req.body;
+
+  if (!['simulation', 'device'].includes(data_mode)) {
+    return res.status(400).json({ error: "data_mode must be 'simulation' or 'device'" });
+  }
+
+  const { data: device, error: findErr } = await supabase
+    .from('devices')
+    .select('id, device_key')
+    .eq('id', deviceId)
+    .eq('user_id', req.user.id)
+    .single();
+
+  if (findErr || !device) {
+    return res.status(404).json({ error: "Device not found or access denied" });
+  }
+
+  if (device.device_key === 'esp32-legacy-default') {
+    return res.status(400).json({ error: "ESP32 Legacy must stay in Device Mode" });
+  }
+
+  const { data: updated, error: updateErr } = await supabase
+    .from('devices')
+    .update({ data_mode })
+    .eq('id', deviceId)
+    .select()
+    .single();
+
+  if (updateErr) {
+    console.error("Failed to update device mode:", updateErr.message);
+    return res.status(500).json({ error: "Failed to update device mode" });
+  }
+
+  console.log(`⚙️  Device ${deviceId} mode → ${data_mode}`);
+  res.json({ ok: true, device: updated });
 });
 
 // ================== ANALYTICS API ==================
@@ -665,27 +852,16 @@ app.post("/api/auth/forgot-password", async (req, res) => {
   }
 
   const siteUrl = process.env.SITE_URL || 'http://localhost:3000';
-  
-  const { data, error } = await supabase.auth.admin.generateLink({
-    type: 'recovery',
-    email: email.trim().toLowerCase(),
-    options: {
-      redirectTo: `${siteUrl}/reset-password`,
-    }
+  const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+    redirectTo: `${siteUrl}/reset-password`,
   });
 
+  // Always return success — never reveal whether the email exists (prevents enumeration)
   if (error) {
-    console.error('Password reset link generation error:', error.message);
-  } else if (data && data.properties && data.properties.action_link) {
-    // Send the email manually using our SMTP account
-    const { sendPasswordResetEmail } = require('./mailer');
-    await sendPasswordResetEmail({
-      email: email.trim().toLowerCase(),
-      resetLink: data.properties.action_link
-    });
+    console.error('Password reset request error:', error.message);
+  } else {
+    console.log(`🔑 Password reset email sent to: ${email}`);
   }
-
-  // Always return success to prevent email enumeration
   res.json({ ok: true });
 });
 
